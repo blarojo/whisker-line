@@ -8,21 +8,22 @@
     html, body {
       margin: 0;
       padding: 0;
-      background: #000;
+      width: 100%;
       height: 100%;
+      background: #000;
       overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       font-family: 'Courier New', monospace;
     }
+    /* Sized to fill the viewport so Phaser's FIT scale mode has a full-screen
+       box to fit the game canvas into (rather than shrinking to the size of
+       an unsized wrapper div). */
     #game-container {
-      line-height: 0;
+      width: 100vw;
+      height: 100vh;
     }
     canvas {
       image-rendering: pixelated;
-      max-width: 100vw;
-      max-height: 100vh;
+      display: block;
     }
   </style>
 </head>

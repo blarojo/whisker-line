@@ -22,8 +22,8 @@ export class StationConcourseScene extends Phaser.Scene {
     for (let i = 0; i < 6; i += 1) {
       const t = i / 5;
       const scale = 1 - i * 0.13;
-      const w = 160 * scale;
-      const h = 90 * scale;
+      const w = 320 * scale;
+      const h = 180 * scale;
       const shade = Math.floor(20 + t * 15);
       tiles.fillStyle(Phaser.Display.Color.GetColor(shade, shade + 4, shade + 6), 1);
       tiles.fillRect(width / 2 - w / 2, height / 2 - h / 2, w, h);
@@ -32,7 +32,7 @@ export class StationConcourseScene extends Phaser.Scene {
     this.add
       .text(width / 2, height * 0.3, 'THE WHISKER LINE', {
         fontFamily: 'Georgia, serif',
-        fontSize: '14px',
+        fontSize: '28px',
         color: '#e8dcc0',
       })
       .setOrigin(0.5);
@@ -40,16 +40,16 @@ export class StationConcourseScene extends Phaser.Scene {
     this.add
       .text(width / 2, height * 0.44, 'Ticket Hall — beyond this point,\nthe tunnels are still being dug.', {
         fontFamily: 'monospace',
-        fontSize: '8px',
+        fontSize: '16px',
         color: '#9aa0a8',
         align: 'center',
       })
       .setOrigin(0.5);
 
     const prompt = this.add
-      .text(width / 2, height - 20, 'Press any key to return to the title screen', {
+      .text(width / 2, height - 40, 'Press any key to return to the menu', {
         fontFamily: 'monospace',
-        fontSize: '7px',
+        fontSize: '14px',
         color: '#666666',
       })
       .setOrigin(0.5);
@@ -63,7 +63,7 @@ export class StationConcourseScene extends Phaser.Scene {
 
     this.input.keyboard.once('keydown', () => {
       this.cameras.main.fadeOut(500, 0, 0, 0);
-      this.time.delayedCall(550, () => this.scene.start('TitleScene'));
+      this.time.delayedCall(550, () => this.scene.start('MenuScene'));
     });
   }
 }

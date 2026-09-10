@@ -62,12 +62,21 @@ else is **[Planned]** and subject to change as we build it.
 
 ### Act 1 — Seven Sisters (the inciting incident, tutorial act)
 
-1. **Title screen** — **[Implemented]**
-   Cold open styled after the *Monkey Island 1* title card: a quiet, moody
-   scene with the game's logo, an original chiptune score setting the
-   adventurous tone, and a prompt to click/press a key to begin.
+1. **Cold-open cinematic** — **[Implemented]**
+   Styled after *Monkey Island 1*'s title sequence: a mandatory establishing
+   shot of London at dusk — the London Eye, the Gherkin, the Shard — under
+   Monkey-Island-style cartoon clouds, Whisker's silhouette dashing around
+   the riverside street below, and (echoing MI1's old sea captain telling
+   ghost stories by firelight) an old mouse spinning tunnel legends from a
+   campfire perched atop the Gherkin. Plays out to the game's original
+   chiptune score with a few lines of film-style narration, and can't be
+   skipped past — only continued once it's finished.
 
-2. **Scene 1 — "The Note", Seven Sisters high street, night** — **[Implemented]**
+2. **Menu — "Start Game"** — **[Implemented]**
+   The title card proper, reached once the cinematic ends: game logo over a
+   moonlit high-street skyline, and a single option, *Start Game*.
+
+3. **Scene 1 — "The Note", Seven Sisters high street, night** — **[Implemented]**
    Whisker is outside his burrow finishing off a bit of cheese when a
    frantic rat messenger — one of LeCheddar's own, defecting out of fear —
    skids in, drops a torn, chewed-up note, and squeaks a warning before
@@ -79,14 +88,14 @@ else is **[Planned]** and subject to change as we build it.
    Whisker down into the Underground, which ends the scene (fades out — the
    next scene is not built yet).
 
-3. **Scene 2 — Station Concourse (ticket hall, mouse-scale)** — **[Planned]**
+4. **Scene 2 — Station Concourse (ticket hall, mouse-scale)** — **[Planned]**
    First real "town hub" of the game: Whisker meets the local Whisker Line
    community sheltering in the ticket hall, learns the basics of LeCheddar's
    toll system, and picks up the game's first proper puzzle (likely: getting
    past a locked service gap onto the platforms, needing an item or an
    ally's help).
 
-4. **Scenes 3–5 — Platforms & tunnels of Seven Sisters** — **[Planned]**
+5. **Scenes 3–5 — Platforms & tunnels of Seven Sisters** — **[Planned]**
    Puzzle sequence introducing inventory/verb interactions properly;
    Whisker recruits a first ally (a platform-dwelling mouse with useful
    local knowledge) and finds the first solid lead on where the cheese
@@ -121,3 +130,6 @@ hero of the Whisker Line.
 
 - Initial version: premise, cast, Act 1 outline, and Scene 1 ("The Note")
   written and implemented alongside the title screen.
+- Added the mandatory cold-open cinematic (London skyline, the Gherkin's
+  fireside storyteller) ahead of the title screen, and split the old title
+  screen into its own "Start Game" menu reached after the cinematic ends.

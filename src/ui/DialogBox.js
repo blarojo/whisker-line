@@ -9,12 +9,12 @@ export class DialogBox {
   constructor(scene) {
     this.scene = scene;
     this.text = scene.add
-      .text(scene.scale.width / 2, scene.scale.height - 16, '', {
+      .text(scene.scale.width / 2, scene.scale.height - 32, '', {
         fontFamily: 'monospace',
-        fontSize: '9px',
+        fontSize: '18px',
         color: '#ffffff',
         align: 'center',
-        wordWrap: { width: scene.scale.width - 24 },
+        wordWrap: { width: scene.scale.width - 48 },
       })
       .setOrigin(0.5, 0.5)
       .setDepth(1000);
