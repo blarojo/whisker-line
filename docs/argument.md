@@ -62,7 +62,13 @@ else is **[Planned]** and subject to change as we build it.
 
 ### Act 1 — Seven Sisters (the inciting incident, tutorial act)
 
-1. **Cold-open cinematic** — **[Implemented]**
+1. **Menu — "Start Game"** — **[Implemented]**
+   The very first screen: game logo over a moonlit high-street skyline,
+   and a single option, *Start Game*. Clicking it (or pressing ENTER) is
+   also the browser-required user gesture that unlocks audio, so the
+   cinematic that follows can have its score playing from its first frame.
+
+2. **Cold-open cinematic** — **[Implemented]**
    Styled after *Monkey Island 1*'s title sequence: a mandatory establishing
    shot of London at night — the London Eye, the Gherkin, and the Shard on
    the left, and, on the right, an original night-mountain silhouette (a
@@ -76,14 +82,8 @@ else is **[Planned]** and subject to change as we build it.
    same beat MI1 itself cuts to — so the character (round ears, a cloak, a
    cane, a curled tail) actually reads instead of staying a tiny distant
    silhouette. Plays out to the game's original chiptune score with a few
-   lines of film-style narration, starting immediately rather than waiting
-   on a "click to begin" screen (audio still needs a browser-required user
-   gesture, so it joins in the moment that happens). It can't be skipped
-   past — only continued once it's finished.
-
-2. **Menu — "Start Game"** — **[Implemented]**
-   The title card proper, reached once the cinematic ends: game logo over a
-   moonlit high-street skyline, and a single option, *Start Game*.
+   lines of film-style narration. It can't be skipped past — only
+   continued once it's finished — and leads straight into Scene 1.
 
 3. **Scene 1 — "The Note", Seven Sisters high street, night** — **[Implemented]**
    Whisker is outside his burrow finishing off a bit of cheese when a

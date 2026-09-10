@@ -2,20 +2,26 @@
 //
 // The mandatory cold open, in the spirit of The Secret of Monkey Island's
 // famous title sequence: a painterly establishing shot the player has to
-// sit through before reaching the menu, drifting cartoon clouds included,
+// sit through before reaching Scene 1, drifting cartoon clouds included,
 // an old-timer telling a story by firelight on a high perch, and a runner
 // darting through the scene below. Ours swaps MI1's Mêlée Island dock for
 // a moonlit skyline of London — the London Eye, the Gherkin, the Shard —
-// and Guybrush's silhouette for Whisker's; the old sea captain spinning
-// ghost stories becomes an old mouse spinning tunnel legends from atop the
-// Gherkin's rooftop lookout. The palette (deep blue night, warm firelight
-// glow, soft cloud shading, twinkling points of light) takes its cue from
-// that same mood, built from scratch as our own composition and our own
+// plus, on the right, an original night-mountain silhouette; and Guybrush's
+// silhouette for Whisker's. The old sea captain spinning ghost stories
+// becomes an old mouse spinning tunnel legends from a campfire at the
+// mountain's summit. The palette (deep blue night, warm firelight glow,
+// soft cloud shading, twinkling points of light) takes its cue from that
+// same mood, built from scratch as our own composition and our own
 // original mouse character design rather than any traced image.
+//
+// Reached from MenuScene's "Start Game" — that click is also what unlocks
+// audio (browsers require a user gesture), so this scene's score can start
+// playing from its very first frame instead of waiting on some later
+// interaction mid-cinematic.
 //
 // No actual Monkey Island art, footage, or music is used here — see "On
 // art and audio assets" in docs/architecture-guide.md. The score is the
-// same original chiptune theme used on the menu that follows this scene.
+// same original chiptune theme used on the menu before this scene.
 
 import { ChiptuneComposer } from '../audio/ChiptuneComposer.js';
 
@@ -27,17 +33,13 @@ export class CinematicScene extends Phaser.Scene {
   create() {
     const { width, height } = this.scale;
 
-    // The cinematic's visuals start playing immediately — no "click to
-    // begin" gate. Audio is a separate story: every major browser refuses
-    // to play sound at all until the page has had some user interaction
-    // (a hard platform rule, not something a game can opt out of), so
-    // there's no way to guarantee music at the literal instant the window
-    // loads. What we *can* do is make sure it starts the moment that
-    // interaction happens, playing from the very beginning of the loop
-    // rather than silently missing its first few bars — so try right away
-    // (some browsers do allow it immediately, e.g. after a page reload),
-    // and otherwise start on the very first click/key the player makes for
-    // any reason.
+    // Reaching this scene means the player just clicked/pressed ENTER on
+    // Start Game, which already unlocked audio — so this starts the score
+    // right away, from the very beginning of the loop, in step with the
+    // visuals. The suspended-state fallback below is just a safety net in
+    // case this scene is ever reached some other way (or a browser is
+    // stricter than expected) — it still starts cleanly on the first
+    // click/key rather than mid-loop.
     this.composer = new ChiptuneComposer(this.sound.context);
     let audioStarted = false;
     const tryStartAudio = () => {
@@ -106,12 +108,18 @@ export class CinematicScene extends Phaser.Scene {
 
     // ...and, on the right, an original night-mountain silhouette — the
     // clearest visual nod to Monkey Island's own title sequence — with the
-    // old mouse's campfire at its summit.
+    // old mouse's campfire at its summit. Kept fairly small relative to the
+    // mountain itself; the dedicated close-up beat later is where he's
+    // meant to actually read in detail.
     const peak = this._drawMountain(width * 0.78, horizonY, 150, 250);
-    this._drawStoneArch(peak.peakX + 26, peak.peakY + 6);
-    const fireY = peak.peakY - 4;
+    const summitScale = 0.6;
+    const summitDeckY = peak.peakY + 6 * summitScale;
+    const summitFireY = peak.peakY - 4 * summitScale;
+    this._drawStoneArch(peak.peakX + 26 * summitScale, summitDeckY, summitScale);
     for (let i = 4; i >= 1; i -= 1) {
-      const glow = this.add.circle(peak.peakX, fireY, 8 + i * 11, 0xffae3d, 0.1 * i).setDepth(3);
+      const glow = this.add
+        .circle(peak.peakX, summitFireY, (8 + i * 11) * summitScale, 0xffae3d, 0.1 * i)
+        .setDepth(3);
       this.tweens.add({
         targets: glow,
         alpha: 0.1 * i + 0.09,
@@ -120,8 +128,8 @@ export class CinematicScene extends Phaser.Scene {
         repeat: -1,
       });
     }
-    this._drawFirePit(peak.peakX, peak.peakY + 6);
-    this._drawStoryteller(peak.peakX, fireY, peak.peakY + 6);
+    this._drawFirePit(peak.peakX, summitDeckY, summitScale);
+    this._drawStoryteller(peak.peakX, summitFireY, summitDeckY, summitScale);
 
     // Whisker's silhouette, dashing around the riverside street below.
     this._runMouseAround(width, height);
@@ -778,7 +786,7 @@ export class CinematicScene extends Phaser.Scene {
     const advance = () => {
       this.composer.stop();
       this.cameras.main.fadeOut(500, 0, 0, 0);
-      this.time.delayedCall(550, () => this.scene.start('MenuScene'));
+      this.time.delayedCall(550, () => this.scene.start('IntroScene'));
     };
 
     this.input.keyboard.once('keydown-ENTER', advance);

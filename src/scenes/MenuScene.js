@@ -1,9 +1,12 @@
 // MenuScene.js
 //
-// The main menu, reached after the mandatory cold-open cinematic
-// (CinematicScene). Deliberately minimal, in the spirit of a classic
-// adventure-game title card: the logo over a moonlit skyline, and exactly
-// one way in — Start Game.
+// The very first screen the player sees: the game's title card, deliberately
+// minimal in the spirit of a classic adventure-game menu — the logo over a
+// moonlit skyline, and exactly one way in, Start Game. Clicking it (or
+// pressing ENTER) is also the browser-required user gesture that unlocks
+// audio, so the mandatory cold-open cinematic that follows (CinematicScene)
+// can have its music playing from its very first frame instead of waiting
+// on some later interaction mid-cinematic.
 
 import { ChiptuneComposer } from '../audio/ChiptuneComposer.js';
 
@@ -100,9 +103,9 @@ export class MenuScene extends Phaser.Scene {
       repeat: -1,
     });
 
-    // The cinematic before this scene already unlocked audio with a user
-    // gesture, so the score can keep playing straight through into the
-    // menu without asking for another click.
+    // This is the very first screen, so audio can't play yet — try anyway
+    // in case the browser already permits it (e.g. a page reload), and
+    // otherwise it starts the moment Start Game is pressed.
     this.composer = new ChiptuneComposer(this.sound.context);
     if (this.sound.context.state === 'running') this.composer.start();
 
@@ -114,8 +117,12 @@ export class MenuScene extends Phaser.Scene {
       startOption.setColor('#ffe89a');
       this.cameras.main.fadeOut(600, 0, 0, 0);
       this.time.delayedCall(650, () => {
+        // Stop here rather than carry this instance over — CinematicScene
+        // starts its own, and by now audio is already unlocked, so its
+        // score picks up right at the cinematic's first frame instead of
+        // waiting on some later click mid-cinematic.
         this.composer.stop();
-        this.scene.start('IntroScene');
+        this.scene.start('CinematicScene');
       });
     };
 

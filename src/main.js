@@ -1,6 +1,6 @@
 import { BootScene } from './scenes/BootScene.js';
-import { CinematicScene } from './scenes/CinematicScene.js';
 import { MenuScene } from './scenes/MenuScene.js';
+import { CinematicScene } from './scenes/CinematicScene.js';
 import { IntroScene } from './scenes/IntroScene.js';
 import { StationConcourseScene } from './scenes/StationConcourseScene.js';
 
@@ -36,7 +36,7 @@ const config = {
     width: GAME_WIDTH,
     height: GAME_HEIGHT,
   },
-  scene: [BootScene, CinematicScene, MenuScene, IntroScene, StationConcourseScene],
+  scene: [BootScene, MenuScene, CinematicScene, IntroScene, StationConcourseScene],
 };
 
 // eslint-disable-next-line no-new

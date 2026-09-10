@@ -55,9 +55,10 @@ whisker-line/
 ├── src/
 │   ├── main.js               Phaser game config + scene registration
 │   ├── scenes/
-│   │   ├── BootScene.js       Minimal setup scene, hands off to CinematicScene
-│   │   ├── CinematicScene.js  Mandatory cold-open cutscene (Monkey-Island-style) + music
-│   │   ├── MenuScene.js       Title card + "Start Game", reached after the cinematic
+│   │   ├── BootScene.js       Minimal setup scene, hands off to MenuScene
+│   │   ├── MenuScene.js       Title card + "Start Game" — the first screen the player sees
+│   │   ├── CinematicScene.js  Mandatory cold-open cutscene (Monkey-Island-style) + music,
+│   │   │                       reached after Start Game
 │   │   ├── IntroScene.js      Scene 1: Seven Sisters high street at night
 │   │   └── StationConcourseScene.js  Placeholder "to be continued" scene reached
 │   │                                  after entering the tube — next slice of work
