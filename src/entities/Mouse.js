@@ -1,29 +1,42 @@
 // Mouse.js
 //
-// Whisker, our hero: a small procedurally-drawn mouse (no external art
-// assets — see "On art and audio assets" in docs/architecture-guide.md)
-// with basic click-to-walk movement and a walk wobble.
+// A small procedurally-drawn mouse (no external art assets — see "On art
+// and audio assets" in docs/architecture-guide.md) with basic click-to-walk
+// movement and a walk wobble. Used for Whisker, our hero, and — with a
+// different `palette` — for other mouse characters like Ratty the
+// messenger, so every mouse in the game gets the same level of detail
+// (shaded ears, whiskers, an eye highlight, paws) rather than reusing
+// Whisker's exact look or falling back to a flat, textureless blob.
+
+const DEFAULT_PALETTE = {
+  body: 0x8d8478,
+  bodyShade: 0x716a5f,
+  belly: 0xe4dccc,
+  ear: 0xc9a8a0,
+  earInner: 0xa9787a,
+  outline: 0x2b2420,
+  whisker: 0xd8d0c0,
+};
 
 export class Mouse {
-  constructor(scene, x, y) {
+  constructor(scene, x, y, options = {}) {
     this.scene = scene;
     this.container = scene.add.container(x, y);
     this.container.setDepth(10);
     this.facing = 1; // 1 = facing right, -1 = facing left
     this._walkTween = null;
     this._bobTween = null;
-    this._draw();
+    this.baseScale = options.scale || 1;
+    this.container.setScale(this.baseScale);
+    this._draw(options.palette);
   }
 
-  _draw() {
+  _draw(palette = {}) {
+    const { body, bodyShade, belly, ear, earInner, outline, whisker } = {
+      ...DEFAULT_PALETTE,
+      ...palette,
+    };
     const g = this.scene.add.graphics();
-    const body = 0x8d8478;
-    const bodyShade = 0x716a5f;
-    const belly = 0xe4dccc;
-    const ear = 0xc9a8a0;
-    const earInner = 0xa9787a;
-    const outline = 0x2b2420;
-    const whisker = 0xd8d0c0;
 
     // Tail — a soft curve instead of a couple of straight segments, so it
     // reads as an actual tail rather than a stick.
@@ -109,15 +122,23 @@ export class Mouse {
 
   setFlip(facing) {
     this.facing = facing;
-    this.container.setScale(facing, 1);
+    this.container.setScale(facing * this.baseScale, this.baseScale);
   }
 
   get x() {
     return this.container.x;
   }
 
+  set x(value) {
+    this.container.x = value;
+  }
+
   get y() {
     return this.container.y;
+  }
+
+  set y(value) {
+    this.container.y = value;
   }
 
   /** Walk to a target position. Resolves once the walk finishes. */
