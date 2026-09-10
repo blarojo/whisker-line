@@ -1,10 +1,11 @@
 // ChiptuneComposer.js
 //
 // A tiny procedural music engine: plays an original, looping chiptune-style
-// theme using raw Web Audio oscillators and noise bursts — melody, bass,
-// a soft pad, and a drum kit, plus a touch of echo for depth. Written to
-// evoke the same swashbuckling adventure-game mood as classic LucasArts
-// title themes, WITHOUT reproducing any existing melody, arrangement, or
+// theme using raw Web Audio oscillators and noise bursts — melody, bass (with
+// a bouncy octave-up pulse for drive), a soft pad, and a drum kit with a
+// syncopated kick accent, plus a touch of echo for depth. Written to evoke
+// the same swashbuckling adventure-game mood as classic LucasArts title
+// themes, WITHOUT reproducing any existing melody, arrangement, or
 // recording — see "On art and audio assets" in docs/architecture-guide.md
 // for why this approach was chosen over shipping real audio files.
 
@@ -17,7 +18,8 @@ const NOTE_FREQUENCIES = {
   G5: 783.99, A5: 880.0,
 };
 
-const STEP = 0.16; // seconds per step at this composer's tempo
+const STEP = 0.145; // seconds per step at this composer's tempo — a brisker
+// pace than earlier drafts for more forward drive
 const STEPS_PER_LOOP = 64; // matches the total length of MELODY/BASS below
 
 // Melody: a jaunty minor-key theme phrased in short adventurous runs and
@@ -42,10 +44,12 @@ const BASS = [
   ['C3', 4], ['C3', 4], ['G3', 4], ['G3', 4],
 ];
 
-// Drum grid: one entry per 16th-note step across the 64-step loop. A tidy
-// four-on-the-floor kick with an off-beat hi-hat and a backbeat snare give
-// the tune some forward motion instead of just melody-over-bass.
+// Drum grid: one entry per 16th-note step across the 64-step loop. A
+// four-on-the-floor kick with a syncopated "and" accent, an off-beat
+// hi-hat, and a backbeat snare give the tune real forward motion instead
+// of just melody-over-bass.
 const KICK_STEPS = new Set([0, 8, 16, 24, 32, 40, 48, 56]);
+const KICK_ACCENT_STEPS = new Set([6, 22, 38, 54]); // the syncopated "and"
 const SNARE_STEPS = new Set([8, 24, 40, 56]);
 const HAT_STEPS = new Set(Array.from({ length: STEPS_PER_LOOP }, (_, i) => i).filter((i) => i % 2 === 1));
 
@@ -60,7 +64,7 @@ export class ChiptuneComposer {
     this.context = context;
 
     this.masterGain = context.createGain();
-    this.masterGain.gain.value = 0.2;
+    this.masterGain.gain.value = 0.18;
     this.masterGain.connect(context.destination);
 
     // A short, low-feedback echo send gives the melody a bit of room to
@@ -143,18 +147,45 @@ export class ChiptuneComposer {
     }
   }
 
-  _playKick(t) {
+  _playKick(t, velocity = 1) {
     const context = this.context;
     const osc = context.createOscillator();
     const gain = context.createGain();
     osc.type = 'sine';
     osc.frequency.setValueAtTime(150, t);
     osc.frequency.exponentialRampToValueAtTime(46, t + 0.12);
-    gain.gain.setValueAtTime(0.55, t);
+    gain.gain.setValueAtTime(0.55 * velocity, t);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.17);
     osc.connect(gain).connect(this.masterGain);
     osc.start(t);
     osc.stop(t + 0.2);
+  }
+
+  /** A bouncy "oom-pah" pulse under the bass: a soft octave-up pluck on
+   * the off-beat of each bass note, for a driving, danceable feel rather
+   * than static held notes. */
+  _playBassPulse(pattern, gain = 0.13) {
+    const context = this.context;
+    let t = context.currentTime + 0.05;
+    for (const [note, steps] of pattern) {
+      const duration = steps * STEP;
+      if (note) {
+        const pulseNote = transposeUpOctave(note);
+        const pulseTime = t + duration * 0.5;
+        const pulseDuration = Math.min(duration * 0.4, STEP * 1.4);
+        const osc = context.createOscillator();
+        const noteGain = context.createGain();
+        osc.type = 'square';
+        osc.frequency.value = NOTE_FREQUENCIES[pulseNote] || NOTE_FREQUENCIES[note];
+        noteGain.gain.setValueAtTime(0, pulseTime);
+        noteGain.gain.linearRampToValueAtTime(gain, pulseTime + 0.015);
+        noteGain.gain.exponentialRampToValueAtTime(0.001, pulseTime + pulseDuration);
+        osc.connect(noteGain).connect(this.masterGain);
+        osc.start(pulseTime);
+        osc.stop(pulseTime + pulseDuration + 0.02);
+      }
+      t += duration;
+    }
   }
 
   _playHat(t) {
@@ -193,6 +224,7 @@ export class ChiptuneComposer {
     for (let i = 0; i < STEPS_PER_LOOP; i += 1) {
       const t = start + i * STEP;
       if (KICK_STEPS.has(i)) this._playKick(t);
+      if (KICK_ACCENT_STEPS.has(i)) this._playKick(t, 0.7);
       if (SNARE_STEPS.has(i)) this._playSnare(t);
       if (HAT_STEPS.has(i)) this._playHat(t);
     }
@@ -205,8 +237,9 @@ export class ChiptuneComposer {
     this._playing = true;
     const scheduleLoop = () => {
       if (!this._playing) return;
-      const loopLength = this._playLine(MELODY, { gain: 0.42, type: 'square', withEcho: true });
-      this._playLine(BASS, { gain: 0.3, type: 'triangle' });
+      const loopLength = this._playLine(MELODY, { gain: 0.46, type: 'square', withEcho: true });
+      this._playLine(BASS, { gain: 0.32, type: 'triangle' });
+      this._playBassPulse(BASS);
       this._playPad(BASS);
       this._playDrums();
       this._loopTimer = setTimeout(scheduleLoop, loopLength * 1000);

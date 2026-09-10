@@ -24,7 +24,10 @@ until LeCheddar's rats take something Whisker actually cares about.
 
 ## Protagonist
 
-- **Name:** Whisker
+- **Full name:** Whisker Ratcliffe — "Whisker" day to day; the full name is
+  there for the rare occasion someone needs to say it very formally (or
+  very angrily), the way Guybrush's full name gets trotted out in Monkey
+  Island.
 - **Species:** Mouse (small, grey, big ears, bigger nerve once pushed)
 - **Home:** A burrow behind the shops on Seven Sisters Road
 - **Personality:** Unbothered and a little lazy by nature, but fiercely loyal
@@ -33,6 +36,14 @@ until LeCheddar's rats take something Whisker actually cares about.
 - **Motivation:** Starts personal (get back what LeCheddar took), grows into
   something bigger (the whole Whisker Line is choking under LeCheddar's
   "toll") by the end of Act 1.
+
+## Whisker's sister
+
+- **Full name:** Pip Ratcliffe — the person Whisker's whole quest kicks off
+  over. Younger, sharper-tongued than her brother, and (per the note in
+  Scene 1) taken by LeCheddar's crew along with the winter cheese store.
+  Not yet on-screen as of Scene 1 — first appearance is planned for later
+  in the story.
 
 ## Antagonist
 
@@ -86,16 +97,18 @@ else is **[Planned]** and subject to change as we build it.
    continued once it's finished — and leads straight into Scene 1.
 
 3. **Scene 1 — "The Note", Seven Sisters high street, night** — **[Implemented]**
-   Whisker is outside his burrow finishing off a bit of cheese when a
-   frantic rat messenger — one of LeCheddar's own, defecting out of fear —
-   skids in, drops a torn, chewed-up note, and squeaks a warning before
-   bolting: *LeCheddar's crew hit the burrow while Whisker was out. They've
-   taken the whole winter cheese store, and worse, they've taken Whisker's
-   little sister.* The note names a way in: through the humans' tube
-   station, down where the mice don't usually go. Whisker has no plan and no
-   choice. The player clicks the Seven Sisters station entrance to send
-   Whisker down into the Underground, which ends the scene (fades out — the
-   next scene is not built yet).
+   Whisker is outside his burrow finishing off a bit of cheese when Ratty —
+   one of LeCheddar's own, defecting out of fear — skids in, drops a torn,
+   chewed-up note, and squeaks a warning before bolting: *LeCheddar's crew
+   hit the burrow while Whisker was out. They've taken the whole winter
+   cheese store, and worse, they've taken his sister, Pip.* The note names
+   a way in: through the humans' tube station, down where the mice don't
+   usually go. Whisker has no plan and no choice. The player clicks the
+   Seven Sisters station entrance — a real sunken subway staircase with
+   blue guard railings and the classic roundel pole sign, illustrated
+   from scratch rather than traced from a photo — to send Whisker down
+   into the Underground, which ends the scene (fades out — the next scene
+   is not built yet).
 
 4. **Scene 2 — Station Concourse (ticket hall, mouse-scale)** — **[Planned]**
    First real "town hub" of the game: Whisker meets the local Whisker Line

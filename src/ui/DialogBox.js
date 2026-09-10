@@ -3,18 +3,31 @@
 // A simple SCUMM-style line of dialogue rendered at the bottom of the
 // screen: a speaker-colored line of text that holds for a bit then clears,
 // with lines queued so scene code can just `await dialogBox.say(...)` in
-// order.
+// order. Sits on its own dark bar rather than directly over the scene, so
+// light-colored dialogue text stays readable no matter what's behind it in
+// a given scene (a bright sky, pale tiles, etc.) — text-over-background
+// contrast can't be guaranteed otherwise.
 
 export class DialogBox {
   constructor(scene) {
     this.scene = scene;
+    const width = scene.scale.width;
+    const height = scene.scale.height;
+    const barHeight = 52;
+    const barY = height - barHeight / 2 - 6;
+
+    this.background = scene.add
+      .rectangle(width / 2, barY, width, barHeight, 0x000000, 0.6)
+      .setDepth(999)
+      .setAlpha(0);
+
     this.text = scene.add
-      .text(scene.scale.width / 2, scene.scale.height - 32, '', {
+      .text(width / 2, barY, '', {
         fontFamily: 'monospace',
         fontSize: '18px',
         color: '#ffffff',
         align: 'center',
-        wordWrap: { width: scene.scale.width - 48 },
+        wordWrap: { width: width - 48 },
       })
       .setOrigin(0.5, 0.5)
       .setDepth(1000);
@@ -43,8 +56,10 @@ export class DialogBox {
     const { line, color, holdMs, resolve } = this._queue.shift();
     this.text.setColor(color);
     this.text.setText(line);
+    this.background.setAlpha(1);
     this.scene.time.delayedCall(holdMs, () => {
       this.text.setText('');
+      this.background.setAlpha(0);
       this._busy = false;
       resolve();
       this._advance();
