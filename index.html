@@ -21,8 +21,11 @@
       width: 100vw;
       height: 100vh;
     }
+    /* Everything on screen is vector-drawn (circles, gradients, ellipses),
+       so we want the browser's normal smooth upscaling here rather than
+       nearest-neighbour "pixelated" scaling, which would make curves look
+       jagged once the canvas is stretched to fill the window. */
     canvas {
-      image-rendering: pixelated;
       display: block;
     }
   </style>

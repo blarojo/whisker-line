@@ -16,7 +16,16 @@ const config = {
   parent: 'game-container',
   width: GAME_WIDTH,
   height: GAME_HEIGHT,
-  pixelArt: true,
+  // Everything in this game is drawn with vector shapes (Graphics circles,
+  // ellipses, gradients), not hand-authored pixel-art bitmaps, so nothing
+  // here actually benefits from "pixel art" nearest-neighbour scaling —
+  // it only made curves look jagged once stretched to fill a real screen.
+  // Smooth antialiasing plus a higher internal render resolution (so the
+  // canvas has more real pixels to draw with before the browser scales it
+  // up to fill the window) is what actually reads as "sharp" here.
+  antialias: true,
+  antialiasGL: true,
+  resolution: Math.max(window.devicePixelRatio || 1, 2),
   backgroundColor: '#000000',
   scale: {
     // FIT scales the game canvas up to fill the browser window (letterboxed

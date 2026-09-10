@@ -4,7 +4,7 @@
 
 *Whisker Line: LeCheddar's Revenge* is a 2D point-and-click adventure game in
 the style of early-90s LucasArts SCUMM games (*The Secret of Monkey Island*,
-*Monkey Island 2: LeChuck's Revenge*): fixed-camera pixel-art scenes, a
+*Monkey Island 2: LeChuck's Revenge*): fixed-camera scenes, a
 click-to-move/click-to-interact protagonist, narrative delivered through text
 dialogue boxes, and scene-to-scene story progression rather than an open world.
 
@@ -16,8 +16,8 @@ dialogue boxes, and scene-to-scene story progression rather than an open world.
 | Language             | Vanilla JavaScript (ES modules)            | No compiler/transpiler needed. Keeps the barrier to running the game at "open a browser" instead of "install a toolchain". TypeScript can be introduced later if the codebase grows enough to want it. |
 | Build step           | **None** — Phaser is vendored locally under `vendor/phaser.min.js` and loaded with a plain `<script>` tag; game code loads as native ES modules (`<script type="module">`). | The dev machine this project started on doesn't have Node.js installed. A no-build setup means anyone can clone the repo and run the game with nothing more than a browser and a static file server. If the project outgrows this (bundling, TypeScript, tests), migrating to Vite is the natural next step — see "Future evolution" below. |
 | Local dev server     | Any static file server. `python -m http.server` is the documented default since Python 3 is commonly available; `npx serve` works too if Node is present. | Browsers block `fetch`/audio-decoding from `file://` pages, so a trivial static server is required — but nothing fancier than that. |
-| Rendering / art      | Phaser's `Graphics` API drawing procedural pixel-art scenes and sprites at runtime, organized as one draw function per background/character. | See "On art and audio assets" below. |
-| Audio                | Web Audio API oscillators, driven through Phaser's sound manager, generating an original chiptune-style score at runtime (no audio files shipped for the prototype). | See "On art and audio assets" below. |
+| Rendering / art      | Phaser's `Graphics` API drawing procedural vector scenes and sprites at runtime (circles, gradients, ellipses — not bitmap sprites), organized as one draw function per background/character. `pixelArt` is deliberately left **off**: nothing here is a low-res pixel-art texture, so smooth antialiasing looks better than nearest-neighbour scaling, and the game config bumps the render `resolution` (to at least 2x, or the display's own device pixel ratio) so curves stay crisp once the canvas is stretched to fill a real screen. | See "On art and audio assets" below. |
+| Audio                | Web Audio API oscillators and noise bursts, driven through Phaser's sound manager: melody, bass, a soft pad, a small drum kit, and a short echo send, generating an original chiptune-style score at runtime (no audio files shipped for the prototype). | See "On art and audio assets" below. |
 | Persistence          | None yet. Planned: `localStorage` for save games and settings once there's more than one scene of progress to save. | Not needed for the current prototype slice. |
 
 ## On art and audio assets
@@ -27,10 +27,11 @@ LucasArts/Disney IP, and it does not embed real photographs of Seven Sisters
 station. Both are copyrighted (game assets by Disney/LucasArts; a specific
 photograph by its photographer), so instead:
 
-- **Visuals**: scenes are original pixel-art, drawn procedurally in code
-  (`src/scenes/*`), *inspired by* the real layout of Seven Sisters station
-  (the round Underground roundel signage, the brick-and-glass 1960s ticket
-  hall frontage, the high street setting) rather than tracing a photo.
+- **Visuals**: scenes are original vector-drawn art, built procedurally in
+  code (`src/scenes/*`), *inspired by* real landmarks (Seven Sisters
+  station's roundel signage and brick-and-glass ticket hall frontage; the
+  London Eye, the Gherkin, and the Shard on the skyline) rather than
+  tracing a photo.
 - **Music**: the title screen and scene music are original short chiptune
   loops synthesized at runtime via the Web Audio API
   (`src/audio/ChiptuneComposer.js`), written to evoke the same

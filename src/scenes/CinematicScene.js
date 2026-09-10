@@ -5,10 +5,12 @@
 // sit through before reaching the menu, drifting cartoon clouds included,
 // an old-timer telling a story by firelight on a high perch, and a runner
 // darting through the scene below. Ours swaps MI1's Mêlée Island dock for
-// a dusk skyline of London — the London Eye, the Gherkin, the Shard — and
-// Guybrush's silhouette for Whisker's; the old sea captain spinning ghost
-// stories becomes an old mouse spinning tunnel legends from atop the
-// Gherkin.
+// a moonlit skyline of London — the London Eye, the Gherkin, the Shard —
+// and Guybrush's silhouette for Whisker's; the old sea captain spinning
+// ghost stories becomes an old mouse spinning tunnel legends from atop the
+// Gherkin. The palette (deep blue night, warm firelight glow, soft cloud
+// shading, twinkling points of light) takes its cue from that same mood,
+// built from scratch as our own composition rather than any traced image.
 //
 // No actual Monkey Island art, footage, or music is used here — see "On
 // art and audio assets" in docs/architecture-guide.md. The score is the
@@ -60,31 +62,46 @@ export class CinematicScene extends Phaser.Scene {
   }
 
   _playCinematic(width, height) {
-    // Dusk sky gradient
+    const horizonY = height * 0.72;
+
+    // Deep midnight-blue sky, darkest at the top and softening toward the
+    // horizon — the kind of moonlit gradient that lets a warm firelight
+    // glow read as properly warm by contrast.
     const sky = this.add.graphics().setDepth(1);
-    sky.fillGradientStyle(0x1a1440, 0x1a1440, 0x4a2f4d, 0x8a5a4a, 1);
-    sky.fillRect(0, 0, width, height * 0.72);
+    sky.fillGradientStyle(0x040614, 0x040614, 0x1c3f66, 0x1c3f66, 1);
+    sky.fillRect(0, 0, width, horizonY);
+    // A faint band of atmospheric haze right at the horizon.
+    const haze = this.add.graphics().setDepth(1);
+    haze.fillGradientStyle(0x3a6f98, 0x3a6f98, 0x3a6f98, 0x3a6f98, 0, 0, 0.35, 0.35);
+    haze.fillRect(0, horizonY - height * 0.16, width, height * 0.16);
+
+    this._drawMoon(width * 0.82, height * 0.16, 26);
+    this._drawStars(width, horizonY);
 
     // Riverside ground band
-    this.add.rectangle(0, height * 0.72, width, height * 0.28, 0x0a0812).setOrigin(0, 0).setDepth(1);
+    this.add.rectangle(0, horizonY, width, height * 0.28, 0x05060d).setOrigin(0, 0).setDepth(1);
     const river = this.add.graphics().setDepth(1);
-    river.fillStyle(0x1c2340, 1);
-    river.fillRect(0, height * 0.74, width, height * 0.08);
-    for (let x = 0; x < width; x += 40) {
-      river.fillStyle(0x3a3f66, 0.5);
-      river.fillRect(x, height * 0.76 + Phaser.Math.Between(-3, 3), 22, 2);
+    river.fillStyle(0x14213a, 1);
+    river.fillRect(0, height * 0.74, width, height * 0.1);
+    for (let x = 0; x < width; x += 34) {
+      river.fillStyle(0x4a7aa8, Phaser.Math.FloatBetween(0.15, 0.4));
+      river.fillRect(x, height * 0.75 + Phaser.Math.Between(-3, 4), 20, 2);
     }
 
-    // Drifting cartoon clouds — two parallax layers, à la Monkey Island's
-    // cold open sky.
-    this._addClouds(width, height, 3, 18000, 0.85);
-    this._addClouds(width, height, 2, 28000, 0.6);
+    // A low, distant building line along the whole width so the skyline
+    // doesn't read as three landmarks floating in empty space.
+    this._drawDistantSkyline(width, horizonY);
+
+    // Drifting cartoon clouds — two parallax layers with a bit of painterly
+    // shading rather than flat blobs.
+    this._addClouds(width, height, 3, 20000, 0.8);
+    this._addClouds(width, height, 2, 30000, 0.5);
 
     // The skyline: London Eye, the Gherkin (with its fireside storyteller),
     // and the Shard.
-    this._drawLondonEye(width * 0.18, height * 0.72, 62);
-    this._drawShard(width * 0.66, height * 0.72, 58, 230);
-    this._drawGherkin(width * 0.44, height * 0.72, 44, 150);
+    this._drawLondonEye(width * 0.18, horizonY, 62);
+    this._drawShard(width * 0.66, horizonY, 58, 230);
+    this._drawGherkin(width * 0.44, horizonY, 44, 150);
 
     // Whisker's silhouette, dashing around the riverside street below.
     this._runMouseAround(width, height);
@@ -93,17 +110,116 @@ export class CinematicScene extends Phaser.Scene {
     this._playCaptions(width, height, () => this._showContinuePrompt(width, height));
   }
 
+  _drawMoon(cx, cy, radius) {
+    // Soft layered halo, largest and dimmest outward, so the moon actually
+    // looks like it's casting light rather than sitting in front of the sky.
+    for (let i = 3; i >= 1; i -= 1) {
+      this.add.circle(cx, cy, radius * (1 + i * 0.55), 0xdce8ff, 0.05 * i).setDepth(1);
+    }
+    this.add.circle(cx, cy, radius, 0xf3ecd0, 1).setDepth(1);
+    const shading = this.add.graphics().setDepth(1);
+    shading.fillStyle(0xd8cfa8, 0.5);
+    shading.fillCircle(cx - radius * 0.28, cy + radius * 0.22, radius * 0.22);
+    shading.fillCircle(cx + radius * 0.3, cy - radius * 0.1, radius * 0.14);
+    shading.fillCircle(cx + radius * 0.05, cy + radius * 0.35, radius * 0.12);
+  }
+
+  _drawStars(width, horizonY) {
+    // Small twinkling points...
+    for (let i = 0; i < 70; i += 1) {
+      const x = Phaser.Math.Between(0, width);
+      const y = Phaser.Math.Between(0, horizonY * 0.9);
+      const size = Phaser.Math.FloatBetween(1, 2);
+      const star = this.add
+        .rectangle(x, y, size, size, 0xdfeeff, Phaser.Math.FloatBetween(0.35, 0.95))
+        .setDepth(1);
+      this.tweens.add({
+        targets: star,
+        alpha: 0.1,
+        duration: Phaser.Math.Between(1200, 3400),
+        yoyo: true,
+        repeat: -1,
+        delay: Phaser.Math.Between(0, 2000),
+      });
+    }
+
+    // ...plus a handful of bright four-point "sparkle" stars for accent.
+    for (let i = 0; i < 5; i += 1) {
+      const x = Phaser.Math.Between(width * 0.05, width * 0.95);
+      const y = Phaser.Math.Between(10, horizonY * 0.55);
+      const sparkle = this._makeSparkle(x, y, Phaser.Math.FloatBetween(4, 6));
+      this.tweens.add({
+        targets: sparkle,
+        alpha: { from: 0.4, to: 1 },
+        scale: { from: 0.8, to: 1.2 },
+        duration: Phaser.Math.Between(1400, 2200),
+        yoyo: true,
+        repeat: -1,
+        delay: Phaser.Math.Between(0, 1500),
+      });
+    }
+  }
+
+  _makeSparkle(x, y, size) {
+    const g = this.add.graphics({ x, y }).setDepth(1);
+    g.fillStyle(0xffffff, 1);
+    g.fillRect(-size * 0.08, -size, size * 0.16, size * 2);
+    g.fillRect(-size, -size * 0.08, size * 2, size * 0.16);
+    g.fillRect(-size * 0.45, -size * 0.45, size * 0.9, size * 0.9);
+    return g;
+  }
+
+  _drawDistantSkyline(width, horizonY) {
+    const g = this.add.graphics().setDepth(1);
+    g.fillStyle(0x0a1424, 1);
+    let x = 0;
+    const lights = [];
+    while (x < width) {
+      const w = Phaser.Math.Between(20, 40);
+      const h = Phaser.Math.Between(10, 34);
+      g.fillRect(x, horizonY - h, w, h);
+      if (Math.random() < 0.6) {
+        lights.push({
+          x: x + Phaser.Math.Between(4, Math.max(5, w - 4)),
+          y: horizonY - Phaser.Math.Between(2, Math.max(3, h - 2)),
+        });
+      }
+      x += w + Phaser.Math.Between(0, 3);
+    }
+
+    // Tiny twinkling windows — the same trick as the glowing settlement
+    // lights that make a painted night skyline feel inhabited.
+    lights.forEach(({ x: lx, y: ly }) => {
+      const light = this.add.circle(lx, ly, 1, 0xffd88a, Phaser.Math.FloatBetween(0.5, 0.9)).setDepth(1.5);
+      this.tweens.add({
+        targets: light,
+        alpha: 0.15,
+        duration: Phaser.Math.Between(1500, 4000),
+        yoyo: true,
+        repeat: -1,
+        delay: Phaser.Math.Between(0, 3000),
+      });
+    });
+  }
+
   _addClouds(width, height, count, baseDuration, alpha) {
     for (let i = 0; i < count; i += 1) {
       const cloud = this.add.container(
         Phaser.Math.Between(0, width),
-        Phaser.Math.Between(20, height * 0.28),
+        Phaser.Math.Between(20, height * 0.32),
       );
       const g = this.add.graphics();
-      g.fillStyle(0xe8e2f0, alpha);
       const puffs = 4 + Math.floor(Math.random() * 2);
+      // Darker, cooler undertone first for volume...
+      g.fillStyle(0x35406e, alpha * 0.7);
       for (let p = 0; p < puffs; p += 1) {
-        g.fillEllipse(p * 26 - puffs * 12, Phaser.Math.Between(-5, 5), 40, 22);
+        g.fillEllipse(p * 26 - puffs * 12, 4 + Phaser.Math.Between(-3, 3), 42, 22);
+      }
+      // ...then a lighter, moonlit highlight on top, offset upward, so the
+      // cloud reads as lit from above rather than a flat silhouette.
+      g.fillStyle(0xc9d6ee, alpha);
+      for (let p = 0; p < puffs; p += 1) {
+        g.fillEllipse(p * 26 - puffs * 12, Phaser.Math.Between(-6, 0), 36, 18);
       }
       cloud.add(g);
       cloud.setDepth(2);
@@ -121,8 +237,8 @@ export class CinematicScene extends Phaser.Scene {
   }
 
   _drawLondonEye(cx, groundY, radius) {
-    const g = this.add.graphics().setDepth(2);
-    g.lineStyle(3, 0x140f28, 0.9);
+    const g = this.add.graphics().setDepth(3);
+    g.lineStyle(3, 0x0a1020, 0.95);
     g.strokeCircle(cx, groundY - radius, radius);
     for (let a = 0; a < 360; a += 30) {
       const rad = Phaser.Math.DegToRad(a);
@@ -133,14 +249,20 @@ export class CinematicScene extends Phaser.Scene {
         groundY - radius + Math.sin(rad) * radius,
       );
     }
-    g.lineStyle(4, 0x140f28, 0.9);
+    g.lineStyle(4, 0x0a1020, 0.95);
     g.lineBetween(cx, groundY, cx, groundY - radius * 2 + 8);
     g.lineBetween(cx - radius * 0.5, groundY, cx + radius * 0.5, groundY);
+    // A thin moonlit rim on the upper-right edge of the wheel for a touch
+    // of dimensionality against the flat silhouette.
+    g.lineStyle(1.5, 0x5b7aa8, 0.5);
+    g.beginPath();
+    g.arc(cx, groundY - radius, radius, Phaser.Math.DegToRad(-60), Phaser.Math.DegToRad(20));
+    g.strokePath();
   }
 
   _drawShard(cx, groundY, halfWidth, spireHeight) {
-    const g = this.add.graphics().setDepth(2);
-    g.fillStyle(0x140f28, 1);
+    const g = this.add.graphics().setDepth(3);
+    g.fillStyle(0x0a1020, 1);
     g.beginPath();
     g.moveTo(cx - halfWidth, groundY);
     g.lineTo(cx - halfWidth * 0.15, groundY - spireHeight);
@@ -148,11 +270,21 @@ export class CinematicScene extends Phaser.Scene {
     g.lineTo(cx + halfWidth, groundY);
     g.closePath();
     g.fillPath();
+
+    // Moonlit facet along one side of the spire.
+    g.fillStyle(0x2c4d72, 0.55);
+    g.beginPath();
+    g.moveTo(cx - halfWidth * 0.15, groundY - spireHeight);
+    g.lineTo(cx + halfWidth * 0.1, groundY - spireHeight * 0.94);
+    g.lineTo(cx + halfWidth * 0.35, groundY);
+    g.lineTo(cx + halfWidth * 0.05, groundY);
+    g.closePath();
+    g.fillPath();
   }
 
   _drawGherkin(cx, groundY, halfWidth, towerHeight) {
-    const g = this.add.graphics().setDepth(2);
-    g.fillStyle(0x140f28, 1);
+    const g = this.add.graphics().setDepth(3);
+    g.fillStyle(0x0a1020, 1);
     g.fillRect(cx - halfWidth, groundY - towerHeight * 0.72, halfWidth * 2, towerHeight * 0.72);
     g.fillEllipse(cx, groundY - towerHeight * 0.72, halfWidth * 2, halfWidth * 1.3);
     g.fillTriangle(
@@ -163,21 +295,26 @@ export class CinematicScene extends Phaser.Scene {
       cx,
       groundY - towerHeight,
     );
+    // Moonlit rim down the right-hand side of the tower.
+    g.fillStyle(0x2c4d72, 0.4);
+    g.fillRect(cx + halfWidth * 0.55, groundY - towerHeight * 0.72, halfWidth * 0.45, towerHeight * 0.72);
 
     // Campfire glow, and the old mouse storyteller at the very top — our
     // nod to the old sea captain telling ghost stories by firelight in
     // Monkey Island 1's opening.
     const fireY = groundY - towerHeight - 8;
-    const glow = this.add.circle(cx, fireY, 24, 0xffae3d, 0.18).setDepth(2);
-    this.tweens.add({
-      targets: glow,
-      alpha: 0.32,
-      duration: 500,
-      yoyo: true,
-      repeat: -1,
-    });
+    for (let i = 3; i >= 1; i -= 1) {
+      const glow = this.add.circle(cx, fireY, 10 + i * 10, 0xffae3d, 0.09 * i).setDepth(3);
+      this.tweens.add({
+        targets: glow,
+        alpha: 0.09 * i + 0.08,
+        duration: 450 + i * 60,
+        yoyo: true,
+        repeat: -1,
+      });
+    }
 
-    const fg = this.add.graphics().setDepth(3);
+    const fg = this.add.graphics().setDepth(4);
     fg.fillStyle(0xff8c2e, 1);
     fg.fillTriangle(cx - 4, fireY + 5, cx + 4, fireY + 5, cx, fireY - 7);
     fg.fillStyle(0xffd35c, 1);
@@ -193,7 +330,7 @@ export class CinematicScene extends Phaser.Scene {
     fg.fillRect(cx - 21, fireY - 7, 1.6, 8);
 
     for (let i = 0; i < 3; i += 1) {
-      const smoke = this.add.circle(cx, fireY - 10 - i * 6, 2 + i, 0xcccccc, 0.15).setDepth(3);
+      const smoke = this.add.circle(cx, fireY - 10 - i * 6, 2 + i, 0xcccccc, 0.15).setDepth(4);
       this.tweens.add({
         targets: smoke,
         y: smoke.y - 22,

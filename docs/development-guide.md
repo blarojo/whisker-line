@@ -26,7 +26,11 @@ git checkout develop
 
 ## Running the game locally
 
-From the repo root:
+The quickest way: run **`start.bat`** (Windows, double-click it) or
+**`./start.sh`** (macOS/Linux) from the repo root. Either one starts the
+local server and opens your browser to it automatically.
+
+To do it by hand instead, from the repo root:
 
 ```sh
 python -m http.server 8000
@@ -36,11 +40,19 @@ Then open <http://localhost:8000> in your browser.
 
 (If you'd rather use Node: `npx serve . -l 8000` does the same job.)
 
-You should see the *Whisker Line: LeCheddar's Revenge* title screen with
-music playing. Click anywhere (or press any key) to start Scene 1.
+Note that this local server is purely plumbing — a generic way to hand the
+browser the game's files over `http://` instead of `file://` (see
+"Troubleshooting" below for why that distinction matters). It has no
+interface of its own to judge; the actual game is what loads in the
+browser tab once you open the URL.
+
+You should see the cold-open cinematic with music playing — press any key
+or click to begin, then **ENTER** once it finishes to reach the "Start
+Game" menu, which drops you into Scene 1.
 
 ## Controls
 
+- **Click**, or **press any key**, to get past the cinematic and the menu.
 - **Click** on the ground to walk Whisker there.
 - **Click** on a highlighted object/character to interact with it.
 - Dialogue advances automatically; click to skip ahead if you want to move
