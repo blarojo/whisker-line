@@ -64,13 +64,18 @@ else is **[Planned]** and subject to change as we build it.
 
 1. **Cold-open cinematic** — **[Implemented]**
    Styled after *Monkey Island 1*'s title sequence: a mandatory establishing
-   shot of London at dusk — the London Eye, the Gherkin, the Shard — under
-   Monkey-Island-style cartoon clouds, Whisker's silhouette dashing around
-   the riverside street below, and (echoing MI1's old sea captain telling
-   ghost stories by firelight) an old mouse spinning tunnel legends from a
-   campfire perched atop the Gherkin. Plays out to the game's original
-   chiptune score with a few lines of film-style narration, and can't be
-   skipped past — only continued once it's finished.
+   shot of London at night — the London Eye, the Gherkin, the Shard under a
+   moonlit sky — with Monkey-Island-style painterly clouds, Whisker's
+   silhouette dashing around the riverside street below, and (echoing MI1's
+   old sea captain telling ghost stories by firelight) an old mouse spinning
+   tunnel legends from a stone-ringed campfire on the Gherkin's rooftop
+   lookout. The wide shot cuts to a dedicated close-up of the old mouse and
+   his fire partway through — the same beat MI1 itself cuts to — so the
+   character (round ears, a cloak, a cane, a curled tail) actually reads
+   instead of staying a tiny skyline silhouette. Plays out to the game's
+   original chiptune score with a few lines of film-style narration, and
+   starts immediately rather than waiting on a "click to begin" screen. It
+   can't be skipped past — only continued once it's finished.
 
 2. **Menu — "Start Game"** — **[Implemented]**
    The title card proper, reached once the cinematic ends: game logo over a
@@ -133,3 +138,9 @@ hero of the Whisker Line.
 - Added the mandatory cold-open cinematic (London skyline, the Gherkin's
   fireside storyteller) ahead of the title screen, and split the old title
   screen into its own "Start Game" menu reached after the cinematic ends.
+- Reworked the cinematic's visuals for a richer, more painterly moonlit
+  look, and gave the old mouse storyteller a dedicated close-up beat so
+  his design (the whole point of the Monkey Island reference) actually
+  reads instead of staying a tiny skyline silhouette. Also dropped the
+  cinematic's separate "click to begin" gate screen — it now starts
+  immediately and unlocks audio on whatever interaction comes first.

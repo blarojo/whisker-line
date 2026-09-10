@@ -8,9 +8,10 @@
 // a moonlit skyline of London — the London Eye, the Gherkin, the Shard —
 // and Guybrush's silhouette for Whisker's; the old sea captain spinning
 // ghost stories becomes an old mouse spinning tunnel legends from atop the
-// Gherkin. The palette (deep blue night, warm firelight glow, soft cloud
-// shading, twinkling points of light) takes its cue from that same mood,
-// built from scratch as our own composition rather than any traced image.
+// Gherkin's rooftop lookout. The palette (deep blue night, warm firelight
+// glow, soft cloud shading, twinkling points of light) takes its cue from
+// that same mood, built from scratch as our own composition and our own
+// original mouse character design rather than any traced image.
 //
 // No actual Monkey Island art, footage, or music is used here — see "On
 // art and audio assets" in docs/architecture-guide.md. The score is the
@@ -25,55 +26,41 @@ export class CinematicScene extends Phaser.Scene {
 
   create() {
     const { width, height } = this.scale;
-    this._started = false;
 
-    // Gate on a user gesture first (browsers won't allow audio otherwise),
-    // styled as a plain "click to begin" black screen — the only input
-    // this scene accepts until the cinematic has fully played out.
-    this.add.rectangle(0, 0, width, height, 0x000000).setOrigin(0, 0).setDepth(0);
-    const startPrompt = this.add
-      .text(width / 2, height / 2, 'Click or press any key to begin', {
-        fontFamily: 'monospace',
-        fontSize: '18px',
-        color: '#ffffff',
-      })
-      .setOrigin(0.5)
-      .setDepth(100);
-    this.tweens.add({
-      targets: startPrompt,
-      alpha: { from: 0.3, to: 1 },
-      duration: 900,
-      yoyo: true,
-      repeat: -1,
-    });
-
+    // The cinematic starts playing immediately — no separate "click to
+    // begin" gate. Browsers still won't allow audio before a user gesture,
+    // so we optimistically try to resume the audio context right away, and
+    // otherwise pick up on the very first click/key the player makes for
+    // any reason (skipping a caption, the eventual ENTER prompt, etc.) and
+    // unlock it then — the music just quietly joins in whenever that is.
     this.composer = new ChiptuneComposer(this.sound.context);
+    if (this.sound.context.state === 'suspended') this.sound.context.resume();
+    this.composer.start();
 
-    const begin = () => {
-      if (this._started) return;
-      this._started = true;
+    const unlockAudio = () => {
       if (this.sound.context.state === 'suspended') this.sound.context.resume();
-      this.composer.start();
-      startPrompt.destroy();
-      this._playCinematic(width, height);
     };
-    this.input.once('pointerdown', begin);
-    this.input.keyboard.once('keydown', begin);
+    this.input.on('pointerdown', unlockAudio);
+    this.input.keyboard.on('keydown', unlockAudio);
+
+    this._playCinematic(width, height);
   }
 
   _playCinematic(width, height) {
     const horizonY = height * 0.72;
 
-    // Deep midnight-blue sky, darkest at the top and softening toward the
-    // horizon — the kind of moonlit gradient that lets a warm firelight
-    // glow read as properly warm by contrast.
+    // Deep midnight-blue sky in three bands, darkest overhead and softening
+    // toward the horizon, for a smoother painterly gradient than a single
+    // two-stop fill can give.
     const sky = this.add.graphics().setDepth(1);
-    sky.fillGradientStyle(0x040614, 0x040614, 0x1c3f66, 0x1c3f66, 1);
-    sky.fillRect(0, 0, width, horizonY);
+    sky.fillGradientStyle(0x030410, 0x030410, 0x0c2038, 0x0c2038, 1);
+    sky.fillRect(0, 0, width, horizonY * 0.55);
+    sky.fillGradientStyle(0x0c2038, 0x0c2038, 0x1f4468, 0x1f4468, 1);
+    sky.fillRect(0, horizonY * 0.55, width, horizonY * 0.45);
     // A faint band of atmospheric haze right at the horizon.
     const haze = this.add.graphics().setDepth(1);
-    haze.fillGradientStyle(0x3a6f98, 0x3a6f98, 0x3a6f98, 0x3a6f98, 0, 0, 0.35, 0.35);
-    haze.fillRect(0, horizonY - height * 0.16, width, height * 0.16);
+    haze.fillGradientStyle(0x4a86ae, 0x4a86ae, 0x4a86ae, 0x4a86ae, 0, 0, 0.4, 0.4);
+    haze.fillRect(0, horizonY - height * 0.18, width, height * 0.18);
 
     this._drawMoon(width * 0.82, height * 0.16, 26);
     this._drawStars(width, horizonY);
@@ -106,8 +93,79 @@ export class CinematicScene extends Phaser.Scene {
     // Whisker's silhouette, dashing around the riverside street below.
     this._runMouseAround(width, height);
 
-    // Film-style narration captions, then hand control to the player.
-    this._playCaptions(width, height, () => this._showContinuePrompt(width, height));
+    // Film-style narration captions, then a close-up cut to the storyteller
+    // (echoing Monkey Island 1's own cut to the old man at the fire — the
+    // detail is too fine to read as a tiny rooftop silhouette in the wide
+    // shot, so it gets its own dedicated close-up beat), then hand control
+    // to the player.
+    this._playCaptions(width, height, () => {
+      this._playStorytellerCloseup(width, height, () => this._showContinuePrompt(width, height));
+    });
+  }
+
+  /**
+   * A dedicated close-up shot of the old mouse and his fire, drawn much
+   * bigger than the tiny rooftop version in the wide establishing shot —
+   * the same drawing code, just at a larger scale, so the "clear Monkey
+   * Island reference" beat the storyteller is built for actually reads.
+   */
+  _playStorytellerCloseup(width, height, onDone) {
+    const container = this.add.container(0, 0).setDepth(55).setAlpha(0);
+
+    const backdrop = this.add.rectangle(0, 0, width, height, 0x02030a, 0.92).setOrigin(0, 0);
+    container.add(backdrop);
+
+    const cx = width * 0.42;
+    const deckY = height * 0.72;
+    const fireY = deckY - 50;
+    const scale = 3.6;
+
+    for (let i = 4; i >= 1; i -= 1) {
+      const glow = this.add.circle(cx, fireY, (8 + i * 11) * scale * 0.55, 0xffae3d, 0.08 * i);
+      container.add(glow);
+      this.tweens.add({
+        targets: glow,
+        alpha: 0.08 * i + 0.07,
+        duration: 420 + i * 60,
+        yoyo: true,
+        repeat: -1,
+      });
+    }
+
+    container.add(this._drawStoneArch(cx + 150, deckY, scale, 56));
+    container.add(this._drawFirePit(cx, deckY, scale, 56.5));
+    this._drawStoryteller(cx, fireY, deckY, scale, 57).forEach((o) => container.add(o));
+
+    const label = this.add
+      .text(width / 2, height - 56, 'They say he still remembers every tunnel beneath the city.', {
+        fontFamily: 'Georgia, serif',
+        fontSize: '18px',
+        fontStyle: 'italic',
+        color: '#f2ead6',
+        align: 'center',
+        wordWrap: { width: width - 160 },
+      })
+      .setOrigin(0.5);
+    container.add(label);
+
+    this.tweens.add({
+      targets: container,
+      alpha: 1,
+      duration: 700,
+      onComplete: () => {
+        this.time.delayedCall(3400, () => {
+          this.tweens.add({
+            targets: container,
+            alpha: 0,
+            duration: 700,
+            onComplete: () => {
+              container.destroy(true);
+              onDone();
+            },
+          });
+        });
+      },
+    });
   }
 
   _drawMoon(cx, cy, radius) {
@@ -126,7 +184,7 @@ export class CinematicScene extends Phaser.Scene {
 
   _drawStars(width, horizonY) {
     // Small twinkling points...
-    for (let i = 0; i < 70; i += 1) {
+    for (let i = 0; i < 90; i += 1) {
       const x = Phaser.Math.Between(0, width);
       const y = Phaser.Math.Between(0, horizonY * 0.9);
       const size = Phaser.Math.FloatBetween(1, 2);
@@ -144,14 +202,14 @@ export class CinematicScene extends Phaser.Scene {
     }
 
     // ...plus a handful of bright four-point "sparkle" stars for accent.
-    for (let i = 0; i < 5; i += 1) {
+    for (let i = 0; i < 7; i += 1) {
       const x = Phaser.Math.Between(width * 0.05, width * 0.95);
       const y = Phaser.Math.Between(10, horizonY * 0.55);
-      const sparkle = this._makeSparkle(x, y, Phaser.Math.FloatBetween(4, 6));
+      const sparkle = this._makeSparkle(x, y, Phaser.Math.FloatBetween(4, 7));
       this.tweens.add({
         targets: sparkle,
         alpha: { from: 0.4, to: 1 },
-        scale: { from: 0.8, to: 1.2 },
+        scale: { from: 0.8, to: 1.25 },
         duration: Phaser.Math.Between(1400, 2200),
         yoyo: true,
         repeat: -1,
@@ -178,7 +236,12 @@ export class CinematicScene extends Phaser.Scene {
       const w = Phaser.Math.Between(20, 40);
       const h = Phaser.Math.Between(10, 34);
       g.fillRect(x, horizonY - h, w, h);
-      if (Math.random() < 0.6) {
+      // A faint moonlit edge on each rooftop so the low skyline has some
+      // shape instead of reading as a single flat band.
+      g.fillStyle(0x1c3552, 0.6);
+      g.fillRect(x, horizonY - h, w, 1.5);
+      g.fillStyle(0x0a1424, 1);
+      if (Math.random() < 0.7) {
         lights.push({
           x: x + Phaser.Math.Between(4, Math.max(5, w - 4)),
           y: horizonY - Phaser.Math.Between(2, Math.max(3, h - 2)),
@@ -210,16 +273,21 @@ export class CinematicScene extends Phaser.Scene {
       );
       const g = this.add.graphics();
       const puffs = 4 + Math.floor(Math.random() * 2);
-      // Darker, cooler undertone first for volume...
-      g.fillStyle(0x35406e, alpha * 0.7);
+      // Darkest undertone first...
+      g.fillStyle(0x262e52, alpha * 0.75);
       for (let p = 0; p < puffs; p += 1) {
-        g.fillEllipse(p * 26 - puffs * 12, 4 + Phaser.Math.Between(-3, 3), 42, 22);
+        g.fillEllipse(p * 26 - puffs * 12, 6 + Phaser.Math.Between(-3, 3), 44, 24);
+      }
+      // ...a mid-tone body...
+      g.fillStyle(0x3f4a78, alpha * 0.9);
+      for (let p = 0; p < puffs; p += 1) {
+        g.fillEllipse(p * 26 - puffs * 12, Phaser.Math.Between(-1, 3), 40, 20);
       }
       // ...then a lighter, moonlit highlight on top, offset upward, so the
       // cloud reads as lit from above rather than a flat silhouette.
-      g.fillStyle(0xc9d6ee, alpha);
+      g.fillStyle(0xd3ddf2, alpha);
       for (let p = 0; p < puffs; p += 1) {
-        g.fillEllipse(p * 26 - puffs * 12, Phaser.Math.Between(-6, 0), 36, 18);
+        g.fillEllipse(p * 26 - puffs * 12, Phaser.Math.Between(-7, -2), 32, 16);
       }
       cloud.add(g);
       cloud.setDepth(2);
@@ -254,7 +322,7 @@ export class CinematicScene extends Phaser.Scene {
     g.lineBetween(cx - radius * 0.5, groundY, cx + radius * 0.5, groundY);
     // A thin moonlit rim on the upper-right edge of the wheel for a touch
     // of dimensionality against the flat silhouette.
-    g.lineStyle(1.5, 0x5b7aa8, 0.5);
+    g.lineStyle(1.5, 0x6a8ebc, 0.6);
     g.beginPath();
     g.arc(cx, groundY - radius, radius, Phaser.Math.DegToRad(-60), Phaser.Math.DegToRad(20));
     g.strokePath();
@@ -271,7 +339,9 @@ export class CinematicScene extends Phaser.Scene {
     g.closePath();
     g.fillPath();
 
-    // Moonlit facet along one side of the spire.
+    // Moonlit facet along one side of the spire, plus a couple of thinner
+    // facet lines below it so the tower reads as faceted glass rather than
+    // a flat triangle.
     g.fillStyle(0x2c4d72, 0.55);
     g.beginPath();
     g.moveTo(cx - halfWidth * 0.15, groundY - spireHeight);
@@ -280,13 +350,50 @@ export class CinematicScene extends Phaser.Scene {
     g.lineTo(cx + halfWidth * 0.05, groundY);
     g.closePath();
     g.fillPath();
+
+    g.lineStyle(1, 0x3a5c82, 0.5);
+    for (let f = 1; f <= 4; f += 1) {
+      const t = f / 5;
+      g.lineBetween(
+        Phaser.Math.Linear(cx - halfWidth * 0.15, cx - halfWidth, t),
+        Phaser.Math.Linear(groundY - spireHeight, groundY, t),
+        Phaser.Math.Linear(cx + halfWidth * 0.1, cx + halfWidth, t),
+        Phaser.Math.Linear(groundY - spireHeight * 0.94, groundY, t),
+      );
+    }
   }
 
   _drawGherkin(cx, groundY, halfWidth, towerHeight) {
+    const bodyTop = groundY - towerHeight * 0.72;
     const g = this.add.graphics().setDepth(3);
     g.fillStyle(0x0a1020, 1);
-    g.fillRect(cx - halfWidth, groundY - towerHeight * 0.72, halfWidth * 2, towerHeight * 0.72);
-    g.fillEllipse(cx, groundY - towerHeight * 0.72, halfWidth * 2, halfWidth * 1.3);
+    g.fillRect(cx - halfWidth, bodyTop, halfWidth * 2, towerHeight * 0.72);
+    g.fillEllipse(cx, bodyTop, halfWidth * 2, halfWidth * 1.3);
+
+    // Moonlit rim down the right-hand side of the tower...
+    g.fillStyle(0x2c4d72, 0.4);
+    g.fillRect(cx + halfWidth * 0.55, bodyTop, halfWidth * 0.45, towerHeight * 0.72);
+    // ...and a few faint horizontal band-lines suggesting the Gherkin's
+    // real lattice of windows, so the tower reads as built, not just a
+    // smooth silhouette.
+    g.lineStyle(1, 0x1c3552, 0.5);
+    for (let b = 1; b <= 6; b += 1) {
+      const by = bodyTop + (towerHeight * 0.72 * b) / 7;
+      const bw = halfWidth * 2 * (0.75 + 0.25 * Math.sin((b / 7) * Math.PI));
+      g.lineBetween(cx - bw / 2, by, cx + bw / 2, by);
+    }
+
+    // A rooftop lookout deck: a small stone platform sitting on top of the
+    // tower body, with the spire rising behind it — this is where the fire
+    // and the old mouse are, rather than floating in mid-air.
+    const deckY = bodyTop - 4;
+    const deckRX = halfWidth * 0.62;
+    g.fillStyle(0x0a1020, 1);
+    g.fillEllipse(cx, deckY, deckRX * 2, deckRX * 0.85);
+    g.lineStyle(1.5, 0x3a5c82, 0.6);
+    g.strokeEllipse(cx, deckY, deckRX * 2, deckRX * 0.85);
+
+    g.fillStyle(0x0a1020, 1);
     g.fillTriangle(
       cx - halfWidth * 0.85,
       groundY - towerHeight * 0.78,
@@ -295,51 +402,199 @@ export class CinematicScene extends Phaser.Scene {
       cx,
       groundY - towerHeight,
     );
-    // Moonlit rim down the right-hand side of the tower.
-    g.fillStyle(0x2c4d72, 0.4);
-    g.fillRect(cx + halfWidth * 0.55, groundY - towerHeight * 0.72, halfWidth * 0.45, towerHeight * 0.72);
 
-    // Campfire glow, and the old mouse storyteller at the very top — our
-    // nod to the old sea captain telling ghost stories by firelight in
-    // Monkey Island 1's opening.
-    const fireY = groundY - towerHeight - 8;
-    for (let i = 3; i >= 1; i -= 1) {
-      const glow = this.add.circle(cx, fireY, 10 + i * 10, 0xffae3d, 0.09 * i).setDepth(3);
+    // A small worn stone archway behind the fire, the way an old lookout
+    // point might have one — our own simple original shape, built from
+    // blocky stone segments rather than any specific reference art.
+    this._drawStoneArch(cx + 20, deckY);
+
+    // Campfire glow, and the old mouse storyteller on the lookout deck —
+    // our nod to the old sea captain telling ghost stories by firelight in
+    // Monkey Island 1's opening, drawn here as our own, clearly-mouse
+    // character: round ears, a curled tail, and a cane.
+    const fireY = deckY - 10;
+    for (let i = 4; i >= 1; i -= 1) {
+      const glow = this.add.circle(cx, fireY, 8 + i * 11, 0xffae3d, 0.1 * i).setDepth(3);
       this.tweens.add({
         targets: glow,
-        alpha: 0.09 * i + 0.08,
-        duration: 450 + i * 60,
+        alpha: 0.1 * i + 0.09,
+        duration: 420 + i * 60,
         yoyo: true,
         repeat: -1,
       });
     }
 
-    const fg = this.add.graphics().setDepth(4);
-    fg.fillStyle(0xff8c2e, 1);
-    fg.fillTriangle(cx - 4, fireY + 5, cx + 4, fireY + 5, cx, fireY - 7);
-    fg.fillStyle(0xffd35c, 1);
-    fg.fillTriangle(cx - 2, fireY + 5, cx + 2, fireY + 5, cx, fireY - 2);
+    this._drawFirePit(cx, deckY);
+    this._drawStoryteller(cx, fireY, deckY);
+  }
 
-    // The old mouse, seated, cane in paw, ears just visible — a silhouette
-    // so simple it reads at any size.
-    fg.fillStyle(0x0d0a18, 1);
-    fg.fillEllipse(cx - 14, fireY + 5, 13, 9);
-    fg.fillCircle(cx - 17, fireY - 3, 5);
-    fg.fillCircle(cx - 20, fireY - 7, 2);
-    fg.fillCircle(cx - 15, fireY - 8, 2);
-    fg.fillRect(cx - 21, fireY - 7, 1.6, 8);
+  _drawStoneArch(ax, groundY, scale = 1, depth = 3.2) {
+    // Two short stone legs and a voussoir-block arch on top — built as
+    // individual wedge/rectangle "stones" with mortar gaps between them,
+    // our own simple original shape rather than any specific reference art.
+    const g = this.add.graphics().setDepth(depth);
+    const legW = 5 * scale;
+    const legH = 16 * scale;
+    const gap = 14 * scale;
+    const stoneColor = 0x1c2b44;
+    const archCx = ax + gap / 2 - legW / 2;
+    const archCy = groundY - legH;
+    const archOuterR = gap / 2 + legW;
+    const archInnerR = gap / 2;
+
+    [ax - gap / 2 - legW, ax + gap / 2].forEach((legX) => {
+      for (let s = 0; s < 4; s += 1) {
+        g.fillStyle(stoneColor, 1);
+        g.fillRect(legX, groundY - (s + 1) * (legH / 4), legW, legH / 4 - 1);
+      }
+    });
+
+    // The arch itself: a fan of wedge-shaped stones from one leg, over the
+    // top, to the other.
+    const segments = 6;
+    for (let s = 0; s < segments; s += 1) {
+      const a0 = Phaser.Math.DegToRad(180 + (s / segments) * 180);
+      const a1 = Phaser.Math.DegToRad(180 + ((s + 0.9) / segments) * 180);
+      g.fillStyle(stoneColor, 1);
+      g.beginPath();
+      g.moveTo(archCx + Math.cos(a0) * archInnerR, archCy + Math.sin(a0) * archInnerR);
+      g.lineTo(archCx + Math.cos(a0) * archOuterR, archCy + Math.sin(a0) * archOuterR);
+      g.lineTo(archCx + Math.cos(a1) * archOuterR, archCy + Math.sin(a1) * archOuterR);
+      g.lineTo(archCx + Math.cos(a1) * archInnerR, archCy + Math.sin(a1) * archInnerR);
+      g.closePath();
+      g.fillPath();
+    }
+
+    // A faint moonlit highlight along the outer curve.
+    g.lineStyle(Math.max(1, scale), 0x5b7aa8, 0.4);
+    g.beginPath();
+    g.arc(archCx, archCy, archOuterR, Phaser.Math.DegToRad(190), Phaser.Math.DegToRad(260));
+    g.strokePath();
+    return g;
+  }
+
+  _drawFirePit(cx, groundY, scale = 1, depth = 3.5) {
+    // A ring of small rounded stones around the base of the fire, instead
+    // of flames just sitting on bare deck.
+    const g = this.add.graphics().setDepth(depth);
+    const stones = 10;
+    for (let i = 0; i < stones; i += 1) {
+      const a = (i / stones) * Math.PI * 2;
+      const rx = 11 * scale;
+      const ry = 4.5 * scale;
+      const px = cx + Math.cos(a) * rx;
+      const py = groundY + Math.sin(a) * ry;
+      g.fillStyle(0x1c2b44, 1);
+      g.fillCircle(px, py, 2.4 * scale);
+      g.fillStyle(0x3a5c82, 0.5);
+      g.fillCircle(px - 0.5 * scale, py - 0.5 * scale, 1 * scale);
+    }
+    return g;
+  }
+
+  /**
+   * The old mouse storyteller: a big, unmistakable silhouette — hooded
+   * cloak, round ears, a curled tail, and a cane he leans on while he
+   * talks, seated just left of the fire so the warm light rims his
+   * outline. `scale` lets the same drawing serve both the tiny rooftop
+   * detail in the wide shot and the full-size close-up.
+   */
+  _drawStoryteller(cx, fireY, deckY, scale = 1, depth = 4) {
+    const s = (n) => n * scale;
+    const objects = [];
+
+    // The fire itself, bright core through soft outer flame.
+    const fire = this.add.graphics().setDepth(depth);
+    fire.fillStyle(0xc44a1e, 1);
+    fire.fillTriangle(cx + s(6), deckY, cx + s(16), deckY, cx + s(11), fireY - s(10));
+    fire.fillStyle(0xff8c2e, 1);
+    fire.fillTriangle(cx + s(7), deckY, cx + s(15), deckY, cx + s(11), fireY - s(4));
+    fire.fillStyle(0xffd35c, 1);
+    fire.fillTriangle(cx + s(8.5), deckY, cx + s(13.5), deckY, cx + s(11), fireY + s(2));
+    fire.fillStyle(0xfff2c4, 1);
+    fire.fillCircle(cx + s(11), deckY - s(2), s(1.6));
+    objects.push(fire);
+
+    // The old mouse: seated just left of the fire.
+    const bx = cx - s(12); // seat position
+    const by = deckY; // ground level on the deck
+
+    const fg = this.add.graphics().setDepth(depth);
+    fg.fillStyle(0x05060c, 1);
+
+    // Cloak/robe, wide at the base like someone sitting cross-legged.
+    fg.fillEllipse(bx, by - s(3), s(26), s(16));
+    fg.fillRect(bx - s(13), by - s(16), s(26), s(14));
+
+    // Hunched shoulders / upper back curve.
+    fg.fillCircle(bx + s(6), by - s(15), s(8));
+
+    // A short cloak collar behind the neck, low enough that it never
+    // competes with the ears for silhouette space.
+    fg.fillCircle(bx + s(3), by - s(19), s(6));
+
+    // Head, tilted slightly toward the fire.
+    const headX = bx + s(13);
+    const headY = by - s(22);
+    fg.fillCircle(headX, headY, s(7));
+
+    // Ears FIRST, poking well clear above the head's own silhouette — the
+    // single clearest "this is a mouse" cue, so nothing else is allowed to
+    // paint over them.
+    fg.fillCircle(headX - s(4), headY - s(10), s(4.6));
+    fg.fillCircle(headX + s(5), headY - s(10.5), s(4.6));
+    // Inner-ear shading for a touch of depth, still original character
+    // design rather than any existing one.
+    fg.fillStyle(0x1c1420, 1);
+    fg.fillCircle(headX - s(4), headY - s(10), s(2.2));
+    fg.fillCircle(headX + s(5), headY - s(10.5), s(2.2));
+    fg.fillStyle(0x05060c, 1);
+
+    // Snout, just a small bump — enough to read as a mouse, not a person —
+    // drawn after the ears so it stays on top of the head outline.
+    fg.fillCircle(headX + s(6), headY + s(2), s(3));
+
+    // Cane, planted in front of him, one paw resting on its handle.
+    fg.lineStyle(s(2), 0x05060c, 1);
+    fg.lineBetween(bx - s(14), by - s(14), bx - s(20), by + s(1));
+    fg.fillCircle(bx - s(14), by - s(14), s(2.2));
+
+    // A curled tail flicking out from under the cloak — the other
+    // unmistakably-a-mouse cue.
+    fg.lineStyle(s(2), 0x05060c, 1);
+    fg.beginPath();
+    fg.moveTo(bx + s(12), by - s(2));
+    fg.lineTo(bx + s(20), by - s(6));
+    fg.lineTo(bx + s(18), by - s(13));
+    fg.lineTo(bx + s(12), by - s(11));
+    fg.strokePath();
+
+    // A thin warm rim-light down the fire-facing edge of the silhouette so
+    // he doesn't just read as a flat black cutout against the glow.
+    fg.lineStyle(Math.max(1, s(1.2)), 0xffb35a, 0.55);
+    fg.beginPath();
+    fg.arc(headX, headY, s(7), Phaser.Math.DegToRad(-40), Phaser.Math.DegToRad(70));
+    fg.strokePath();
+    fg.beginPath();
+    fg.moveTo(bx + s(12), by - s(10));
+    fg.lineTo(bx + s(13), by - s(2));
+    fg.strokePath();
+    objects.push(fg);
 
     for (let i = 0; i < 3; i += 1) {
-      const smoke = this.add.circle(cx, fireY - 10 - i * 6, 2 + i, 0xcccccc, 0.15).setDepth(4);
+      const smoke = this.add.circle(cx + s(11), fireY - s(6) - i * s(6), s(2 + i), 0xcccccc, 0.15).setDepth(depth);
       this.tweens.add({
         targets: smoke,
-        y: smoke.y - 22,
+        y: smoke.y - s(22),
         alpha: 0,
         duration: 3000 + i * 400,
         repeat: -1,
         delay: i * 600,
       });
+      objects.push(smoke);
     }
+
+    return objects;
   }
 
   _runMouseAround(width, height) {
