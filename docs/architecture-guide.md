@@ -30,8 +30,10 @@ photograph by its photographer), so instead:
 - **Visuals**: scenes are original vector-drawn art, built procedurally in
   code (`src/scenes/*`), *inspired by* real landmarks (Seven Sisters
   station's roundel signage and brick-and-glass ticket hall frontage; the
-  London Eye, the Gherkin, and the Shard on the skyline) rather than
-  tracing a photo.
+  London Eye, the Gherkin, and the Shard on the skyline) and by the mood
+  of painted adventure-game night skies (the cinematic's original
+  mountain silhouette, winding trail, and campfire storyteller) rather
+  than tracing a photo or any specific reference image.
 - **Music**: the title screen and scene music are original short chiptune
   loops synthesized at runtime via the Web Audio API
   (`src/audio/ChiptuneComposer.js`), written to evoke the same

@@ -64,18 +64,22 @@ else is **[Planned]** and subject to change as we build it.
 
 1. **Cold-open cinematic** — **[Implemented]**
    Styled after *Monkey Island 1*'s title sequence: a mandatory establishing
-   shot of London at night — the London Eye, the Gherkin, the Shard under a
-   moonlit sky — with Monkey-Island-style painterly clouds, Whisker's
-   silhouette dashing around the riverside street below, and (echoing MI1's
-   old sea captain telling ghost stories by firelight) an old mouse spinning
-   tunnel legends from a stone-ringed campfire on the Gherkin's rooftop
-   lookout. The wide shot cuts to a dedicated close-up of the old mouse and
-   his fire partway through — the same beat MI1 itself cuts to — so the
-   character (round ears, a cloak, a cane, a curled tail) actually reads
-   instead of staying a tiny skyline silhouette. Plays out to the game's
-   original chiptune score with a few lines of film-style narration, and
-   starts immediately rather than waiting on a "click to begin" screen. It
-   can't be skipped past — only continued once it's finished.
+   shot of London at night — the London Eye, the Gherkin, and the Shard on
+   the left, and, on the right, an original night-mountain silhouette (a
+   jagged peak, a switchback trail climbing it, a cluster of lights
+   nestled at its foot) that's the clearest visual nod to MI1's own art —
+   under painterly moonlit clouds, with Whisker's silhouette dashing around
+   the riverside street below. Echoing MI1's old sea captain telling ghost
+   stories by firelight, an old mouse spins tunnel legends from a
+   stone-ringed campfire at the mountain's summit. The wide shot cuts to a
+   dedicated close-up of the old mouse and his fire partway through — the
+   same beat MI1 itself cuts to — so the character (round ears, a cloak, a
+   cane, a curled tail) actually reads instead of staying a tiny distant
+   silhouette. Plays out to the game's original chiptune score with a few
+   lines of film-style narration, starting immediately rather than waiting
+   on a "click to begin" screen (audio still needs a browser-required user
+   gesture, so it joins in the moment that happens). It can't be skipped
+   past — only continued once it's finished.
 
 2. **Menu — "Start Game"** — **[Implemented]**
    The title card proper, reached once the cinematic ends: game logo over a
@@ -143,4 +147,8 @@ hero of the Whisker Line.
   his design (the whole point of the Monkey Island reference) actually
   reads instead of staying a tiny skyline silhouette. Also dropped the
   cinematic's separate "click to begin" gate screen — it now starts
-  immediately and unlocks audio on whatever interaction comes first.
+  immediately and audio joins in on whatever interaction comes first.
+- Gave the storyteller his own original night-mountain silhouette beside
+  the London skyline (jagged peak, switchback trail, a lit settlement at
+  its foot) instead of the Gherkin's rooftop, so the Monkey-Island-style
+  cold open reads clearly without reusing any specific reference art.

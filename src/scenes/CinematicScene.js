@@ -27,21 +27,36 @@ export class CinematicScene extends Phaser.Scene {
   create() {
     const { width, height } = this.scale;
 
-    // The cinematic starts playing immediately — no separate "click to
-    // begin" gate. Browsers still won't allow audio before a user gesture,
-    // so we optimistically try to resume the audio context right away, and
-    // otherwise pick up on the very first click/key the player makes for
-    // any reason (skipping a caption, the eventual ENTER prompt, etc.) and
-    // unlock it then — the music just quietly joins in whenever that is.
+    // The cinematic's visuals start playing immediately — no "click to
+    // begin" gate. Audio is a separate story: every major browser refuses
+    // to play sound at all until the page has had some user interaction
+    // (a hard platform rule, not something a game can opt out of), so
+    // there's no way to guarantee music at the literal instant the window
+    // loads. What we *can* do is make sure it starts the moment that
+    // interaction happens, playing from the very beginning of the loop
+    // rather than silently missing its first few bars — so try right away
+    // (some browsers do allow it immediately, e.g. after a page reload),
+    // and otherwise start on the very first click/key the player makes for
+    // any reason.
     this.composer = new ChiptuneComposer(this.sound.context);
-    if (this.sound.context.state === 'suspended') this.sound.context.resume();
-    this.composer.start();
-
-    const unlockAudio = () => {
-      if (this.sound.context.state === 'suspended') this.sound.context.resume();
+    let audioStarted = false;
+    const tryStartAudio = () => {
+      if (audioStarted) return;
+      if (this.sound.context.state === 'running') {
+        audioStarted = true;
+        this.composer.start();
+      } else if (this.sound.context.state === 'suspended') {
+        this.sound.context.resume().then(() => {
+          if (!audioStarted) {
+            audioStarted = true;
+            this.composer.start();
+          }
+        });
+      }
     };
-    this.input.on('pointerdown', unlockAudio);
-    this.input.keyboard.on('keydown', unlockAudio);
+    tryStartAudio();
+    this.input.on('pointerdown', tryStartAudio);
+    this.input.keyboard.on('keydown', tryStartAudio);
 
     this._playCinematic(width, height);
   }
@@ -62,7 +77,7 @@ export class CinematicScene extends Phaser.Scene {
     haze.fillGradientStyle(0x4a86ae, 0x4a86ae, 0x4a86ae, 0x4a86ae, 0, 0, 0.4, 0.4);
     haze.fillRect(0, horizonY - height * 0.18, width, height * 0.18);
 
-    this._drawMoon(width * 0.82, height * 0.16, 26);
+    this._drawMoon(width * 0.24, height * 0.14, 26);
     this._drawStars(width, horizonY);
 
     // Riverside ground band
@@ -84,11 +99,29 @@ export class CinematicScene extends Phaser.Scene {
     this._addClouds(width, height, 3, 20000, 0.8);
     this._addClouds(width, height, 2, 30000, 0.5);
 
-    // The skyline: London Eye, the Gherkin (with its fireside storyteller),
-    // and the Shard.
-    this._drawLondonEye(width * 0.18, horizonY, 62);
-    this._drawShard(width * 0.66, horizonY, 58, 230);
-    this._drawGherkin(width * 0.44, horizonY, 44, 150);
+    // The London skyline, kept to the left half of the frame...
+    this._drawLondonEye(width * 0.14, horizonY, 54);
+    this._drawGherkin(width * 0.28, horizonY, 36, 130);
+    this._drawShard(width * 0.4, horizonY, 46, 190);
+
+    // ...and, on the right, an original night-mountain silhouette — the
+    // clearest visual nod to Monkey Island's own title sequence — with the
+    // old mouse's campfire at its summit.
+    const peak = this._drawMountain(width * 0.78, horizonY, 150, 250);
+    this._drawStoneArch(peak.peakX + 26, peak.peakY + 6);
+    const fireY = peak.peakY - 4;
+    for (let i = 4; i >= 1; i -= 1) {
+      const glow = this.add.circle(peak.peakX, fireY, 8 + i * 11, 0xffae3d, 0.1 * i).setDepth(3);
+      this.tweens.add({
+        targets: glow,
+        alpha: 0.1 * i + 0.09,
+        duration: 420 + i * 60,
+        yoyo: true,
+        repeat: -1,
+      });
+    }
+    this._drawFirePit(peak.peakX, peak.peakY + 6);
+    this._drawStoryteller(peak.peakX, fireY, peak.peakY + 6);
 
     // Whisker's silhouette, dashing around the riverside street below.
     this._runMouseAround(width, height);
@@ -383,16 +416,6 @@ export class CinematicScene extends Phaser.Scene {
       g.lineBetween(cx - bw / 2, by, cx + bw / 2, by);
     }
 
-    // A rooftop lookout deck: a small stone platform sitting on top of the
-    // tower body, with the spire rising behind it — this is where the fire
-    // and the old mouse are, rather than floating in mid-air.
-    const deckY = bodyTop - 4;
-    const deckRX = halfWidth * 0.62;
-    g.fillStyle(0x0a1020, 1);
-    g.fillEllipse(cx, deckY, deckRX * 2, deckRX * 0.85);
-    g.lineStyle(1.5, 0x3a5c82, 0.6);
-    g.strokeEllipse(cx, deckY, deckRX * 2, deckRX * 0.85);
-
     g.fillStyle(0x0a1020, 1);
     g.fillTriangle(
       cx - halfWidth * 0.85,
@@ -402,30 +425,112 @@ export class CinematicScene extends Phaser.Scene {
       cx,
       groundY - towerHeight,
     );
+  }
 
-    // A small worn stone archway behind the fire, the way an old lookout
-    // point might have one — our own simple original shape, built from
-    // blocky stone segments rather than any specific reference art.
-    this._drawStoneArch(cx + 20, deckY);
+  /**
+   * An original night-mountain silhouette beside the London skyline — the
+   * clearest visual nod to Monkey Island's own title sequence: a tall dark
+   * peak, a switchback path climbing it, a cluster of lights nestled at
+   * its foot, and (drawn on top afterwards) the old mouse's campfire at
+   * the summit. Built entirely from our own shapes; not traced from any
+   * reference image.
+   *
+   * @returns {{peakX: number, peakY: number}} where the summit perch is,
+   *   so the campfire/storyteller can be placed on it.
+   */
+  _drawMountain(cx, groundY, halfWidth, peakHeight) {
+    const g = this.add.graphics().setDepth(2.5);
 
-    // Campfire glow, and the old mouse storyteller on the lookout deck —
-    // our nod to the old sea captain telling ghost stories by firelight in
-    // Monkey Island 1's opening, drawn here as our own, clearly-mouse
-    // character: round ears, a curled tail, and a cane.
-    const fireY = deckY - 10;
-    for (let i = 4; i >= 1; i -= 1) {
-      const glow = this.add.circle(cx, fireY, 8 + i * 11, 0xffae3d, 0.1 * i).setDepth(3);
+    // A smaller, darker secondary ridge behind the main peak for depth.
+    g.fillStyle(0x080d1c, 1);
+    g.fillTriangle(
+      cx + halfWidth * 0.35,
+      groundY,
+      cx + halfWidth * 1.3,
+      groundY,
+      cx + halfWidth * 0.75,
+      groundY - peakHeight * 0.55,
+    );
+
+    // The main peak: an irregular, hand-placed ridge line on each side
+    // (not a smooth triangle) so it reads as rock rather than geometry.
+    const top = groundY - peakHeight;
+    const leftSide = [
+      [0, 0], [-0.08, 0.09], [-0.22, 0.22], [-0.18, 0.34], [-0.4, 0.48],
+      [-0.55, 0.58], [-0.48, 0.68], [-0.72, 0.8], [-0.85, 0.9], [-1, 1],
+    ];
+    const rightSide = [
+      [0.07, 0.04], [0.18, 0.16], [0.14, 0.27], [0.34, 0.4], [0.3, 0.5],
+      [0.52, 0.62], [0.46, 0.72], [0.68, 0.84], [0.8, 0.92], [1, 1],
+    ];
+    const toPoint = ([fx, fy]) => [cx + fx * halfWidth, top + fy * peakHeight];
+
+    g.fillStyle(0x0a1424, 1);
+    g.beginPath();
+    g.moveTo(cx, top);
+    leftSide.forEach(([fx, fy]) => {
+      const [x, y] = toPoint([fx, fy]);
+      g.lineTo(x, y);
+    });
+    g.lineTo(cx + halfWidth, groundY);
+    [...rightSide].reverse().forEach(([fx, fy]) => {
+      const [x, y] = toPoint([fx, fy]);
+      g.lineTo(x, y);
+    });
+    g.closePath();
+    g.fillPath();
+
+    // Moonlit facets catching the light along the upper-right ridge.
+    g.fillStyle(0x24456c, 0.35);
+    g.beginPath();
+    g.moveTo(cx, top);
+    [[0.07, 0.04], [0.18, 0.16], [0.14, 0.27], [0.34, 0.4]].forEach(([fx, fy]) => {
+      const [x, y] = toPoint([fx, fy]);
+      g.lineTo(x, y);
+    });
+    g.lineTo(cx + halfWidth * 0.2, top + peakHeight * 0.4);
+    g.closePath();
+    g.fillPath();
+
+    // A switchback path zigzagging from the foot of the mountain up to
+    // the summit — the same idea as a winding mountain trail, drawn as
+    // our own simple line rather than tracing any specific artwork.
+    g.lineStyle(1.5, 0x5b7aa8, 0.55);
+    const switches = 8;
+    let side = -1;
+    g.beginPath();
+    g.moveTo(cx - halfWidth * 0.1, groundY - 2);
+    for (let i = 1; i <= switches; i += 1) {
+      const t = i / switches;
+      const y = groundY - peakHeight * 0.94 * t;
+      const spread = (1 - t) * halfWidth * 0.5 + halfWidth * 0.05;
+      const x = cx + side * spread;
+      g.lineTo(x, y);
+      side *= -1;
+    }
+    g.lineTo(cx, top + peakHeight * 0.06);
+    g.strokePath();
+
+    // A cluster of small twinkling lights nestled at the mountain's foot —
+    // a little settlement, echoing the glowing lights at the base of that
+    // kind of painted night mountain without copying its specific art.
+    for (let i = 0; i < 16; i += 1) {
+      const lx = cx - halfWidth * 0.75 + Math.random() * halfWidth * 0.9;
+      const ly = groundY - Math.random() * peakHeight * 0.06;
+      const light = this.add
+        .circle(lx, ly, Phaser.Math.FloatBetween(1, 1.8), 0xffe1a0, Phaser.Math.FloatBetween(0.5, 0.95))
+        .setDepth(2.6);
       this.tweens.add({
-        targets: glow,
-        alpha: 0.1 * i + 0.09,
-        duration: 420 + i * 60,
+        targets: light,
+        alpha: 0.15,
+        duration: Phaser.Math.Between(1200, 3200),
         yoyo: true,
         repeat: -1,
+        delay: Phaser.Math.Between(0, 2500),
       });
     }
 
-    this._drawFirePit(cx, deckY);
-    this._drawStoryteller(cx, fireY, deckY);
+    return { peakX: cx, peakY: top };
   }
 
   _drawStoneArch(ax, groundY, scale = 1, depth = 3.2) {
