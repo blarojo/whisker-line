@@ -40,12 +40,18 @@ export class DialogBox {
    * @param {string} speaker
    * @param {string} line
    * @param {string} color hex color for this speaker's text
-   * @param {number} holdMs how long the line stays on screen
+   * @param {number} [holdMs] how long the line stays on screen — omit to
+   *   scale automatically with how much text is on screen (a short line
+   *   and a long paragraph shouldn't hold for the same fixed time), or
+   *   pass a specific value for a deliberately quick beat.
    * @returns {Promise<void>} resolves once the line has been shown and cleared
    */
-  say(speaker, line, color = '#ffffff', holdMs = 2200) {
+  say(speaker, line, color = '#ffffff', holdMs = null) {
+    // ~45ms/character reads comfortably without dragging on short lines;
+    // the floor keeps even a one-word line up long enough to register.
+    const duration = holdMs ?? Math.max(2400, line.length * 45);
     return new Promise((resolve) => {
-      this._queue.push({ speaker, line, color, holdMs, resolve });
+      this._queue.push({ speaker, line, color, holdMs: duration, resolve });
       this._advance();
     });
   }

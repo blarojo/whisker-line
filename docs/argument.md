@@ -107,21 +107,33 @@ else is **[Planned]** and subject to change as we build it.
    Seven Sisters station entrance — a real sunken subway staircase with
    blue guard railings and the classic roundel pole sign, illustrated
    from scratch rather than traced from a photo — to send Whisker down
-   into the Underground, which ends the scene (fades out — the next scene
-   is not built yet).
+   into the Underground, which leads into Scene 2.
 
-4. **Scene 2 — Station Concourse (ticket hall, mouse-scale)** — **[Planned]**
-   First real "town hub" of the game: Whisker meets the local Whisker Line
-   community sheltering in the ticket hall, learns the basics of LeCheddar's
-   toll system, and picks up the game's first proper puzzle (likely: getting
-   past a locked service gap onto the platforms, needing an item or an
-   ally's help).
+4. **Scene 2 — "The Turnstile", Station Concourse (ticket hall, mouse-scale)** — **[Implemented]**
+   The first real "town hub": a mouse-scale ticket hall built into the
+   gaps of the real station, run in part by **Nibs**, a trader who's made
+   her peace with LeCheddar's toll. She explains the rule blocking the way
+   to the platforms: a coin-slot turnstile that "doesn't check too closely
+   what you feed it, mind, so long as it shines." This is the game's first
+   proper inventory puzzle: search the pile of litter against the wall to
+   find a **bottle cap**, select it from the inventory bar, then click the
+   turnstile to feed it in and pass through. A poster of LeCheddar
+   ("WANTED... approach with caution, and possibly cheese") is good for a
+   look, no mechanical effect. Leads into Scene 3.
 
-5. **Scenes 3–5 — Platforms & tunnels of Seven Sisters** — **[Planned]**
-   Puzzle sequence introducing inventory/verb interactions properly;
-   Whisker recruits a first ally (a platform-dwelling mouse with useful
-   local knowledge) and finds the first solid lead on where the cheese
-   store — and his sister — were taken.
+5. **Scene 3 — "The Grate", the platform** — **[Implemented]**
+   Whisker reaches the platform proper and meets **Old Tom**, a
+   platform-dwelling mouse who's outlasted a lot of LeCheddar's toll. He
+   explains the way further in is blocked by a grate — rusted shut, not
+   locked — and hints that "something stiff and thin" would pry it. A
+   second, structurally identical puzzle to Scene 2's (deliberately, to
+   reinforce the pattern): search the cracked vending machine for a
+   **matchstick**, select it, use it on the grate. Old Tom gets the
+   scene's one flavour/lore hotspot (rotating lines about the toll and
+   what's left of the platform's old population). Ends the currently-built
+   story on a cliffhanger as Whisker steps through into LeCheddar's
+   tunnels — Acts 2 and 3 (station-to-station puzzles, the confrontation
+   with LeCheddar) are the planned continuation from here, not yet built.
 
 ### Act 2 — Down the Line — **[Planned]**
 

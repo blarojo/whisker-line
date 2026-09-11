@@ -3,6 +3,8 @@ import { MenuScene } from './scenes/MenuScene.js';
 import { CinematicScene } from './scenes/CinematicScene.js';
 import { IntroScene } from './scenes/IntroScene.js';
 import { StationConcourseScene } from './scenes/StationConcourseScene.js';
+import { PlatformScene } from './scenes/PlatformScene.js';
+import { EndOfDemoScene } from './scenes/EndOfDemoScene.js';
 
 // Same 8:5 aspect ratio as the SCUMM-era games this project is inspired by,
 // but at double the base resolution (640x400 instead of 320x200) so scene
@@ -36,8 +38,10 @@ const config = {
     width: GAME_WIDTH,
     height: GAME_HEIGHT,
   },
-  scene: [BootScene, MenuScene, CinematicScene, IntroScene, StationConcourseScene],
+  scene: [BootScene, MenuScene, CinematicScene, IntroScene, StationConcourseScene, PlatformScene, EndOfDemoScene],
 };
 
-// eslint-disable-next-line no-new
-new Phaser.Game(config);
+const game = new Phaser.Game(config);
+
+// Exposed for debugging in the browser console (window.__game.scene.getScene('X'))
+window.__game = game;

@@ -60,12 +60,20 @@ whisker-line/
 │   │   ├── CinematicScene.js  Mandatory cold-open cutscene (Monkey-Island-style) + music,
 │   │   │                       reached after Start Game
 │   │   ├── IntroScene.js      Scene 1: Seven Sisters high street at night
-│   │   └── StationConcourseScene.js  Placeholder "to be continued" scene reached
-│   │                                  after entering the tube — next slice of work
+│   │   ├── StationConcourseScene.js  Scene 2: the ticket hall & turnstile puzzle
+│   │   ├── PlatformScene.js    Scene 3: the platform & grate puzzle
+│   │   └── EndOfDemoScene.js   Cliffhanger "to be continued" card — where the
+│   │                            currently-built story stops, until Act 2 exists
 │   ├── entities/
-│   │   └── Mouse.js           The player character: drawing, walk animation, movement
+│   │   └── Mouse.js           Any mouse character: drawing (with a swappable
+│   │                           colour palette), walk animation, movement
+│   ├── data/
+│   │   └── Items.js            Inventory item definitions (id, name, description,
+│   │                            a small procedural icon-drawing function)
 │   ├── ui/
-│   │   └── DialogBox.js       SCUMM-style bottom-of-screen text box for dialogue
+│   │   ├── DialogBox.js       SCUMM-style bottom-of-screen text box for dialogue
+│   │   └── Inventory.js        Persistent on-screen item slots: click to select,
+│   │                            click a hotspot to try using the selected item there
 │   └── audio/
 │       └── ChiptuneComposer.js Procedural music generator (Web Audio API oscillators)
 ├── assets/
@@ -87,11 +95,26 @@ whisker-line/
 - Keep drawing code for a given visual (a character, a background) in its own
   function/module rather than inline in a scene's `create()`, so scenes stay
   readable as "what happens" rather than "how it's drawn".
+- **Puzzle pattern** (Scenes 2 and 3 both follow this): a scene has
+  `canExplore` (gates all hotspots until the opening dialogue finishes) and
+  `_busyAction` (true while a hotspot's walk-then-react sequence is running,
+  so clicks can't overlap). Hotspots are `Phaser.GameObjects.Zone`s — **they
+  must have `.setInteractive()` called on them explicitly**, or they silently
+  swallow every click; this was a real bug caught during testing, easy to
+  reintroduce in a new scene if the pattern isn't copied carefully. A hotspot
+  handler checks `this.inventory.getSelectedId()` to see whether the right
+  item is selected before resolving a puzzle.
+- Each scene currently creates its own `Inventory` instance — items don't
+  carry across scenes, which is fine as long as every puzzle's item is found
+  and used within the same scene it's needed in (true of everything built so
+  far). See "Future evolution" for what changes if that stops being true.
 
 ## Future evolution
 
 Reasonable next steps as the game grows, in rough order of likely need:
-1. Add a simple inventory + verb system (Look/Use/Talk) once puzzles need it.
+1. If a puzzle ever needs an item picked up in one scene and used in a
+   later one, move `Inventory` from being created per-scene to living on
+   `this.registry` (or being passed between scenes) so it persists.
 2. Introduce `localStorage` save/load once there's more than one scene of
    progress worth persisting.
 3. Move from procedural art/audio to real hand-drawn sprite sheets and a
